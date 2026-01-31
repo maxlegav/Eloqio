@@ -1,5 +1,7 @@
 import { createTheme, type Shadows } from "@mui/material/styles";
+import { eloquioLightPalette, eloquioDarkPalette } from "./enterprise/branding";
 
+// === ELOQUIO THEME ===
 export const theme = createTheme({
   cssVariables: {
     cssVarPrefix: "app",
@@ -7,42 +9,10 @@ export const theme = createTheme({
 
   colorSchemes: {
     light: {
-      palette: {
-        primary: { main: "#12151C" },
-        secondary: { main: "#404040" },
-
-        goldFg: "rgb(104, 48, 9)",
-        goldBg: "rgba(255, 193, 7, 0.6)",
-        shadow: "rgba(0, 0, 0, 0.18)",
-        blue: "#1b8af8ff",
-        blueHover: "#1a7cd4ff",
-        blueActive: "#166bbf",
-        onBlue: "#FFFFFF",
-
-        level0: "#FFFFFF",
-        level1: "#F5F5F5",
-        level2: "#E0E0E0",
-        level3: "#D0D0D0",
-      },
+      palette: eloquioLightPalette,
     },
     dark: {
-      palette: {
-        primary: { main: "#FFFFFF", light: "#E0E0E0" },
-        secondary: { main: "#B3B3B3" },
-
-        goldFg: "#FFD700",
-        goldBg: "rgba(255, 215, 0, 0.2)",
-        shadow: "rgba(0, 0, 0, 0.46)",
-        blue: "#3198ffff",
-        blueHover: "#2787e6ff",
-        blueActive: "#1f76cc",
-        onBlue: "#FFFFFF",
-
-        level0: "#121212",
-        level1: "#1C1C1C",
-        level2: "#2D2D2D",
-        level3: "#3E3E3E",
-      },
+      palette: eloquioDarkPalette,
     },
   },
 

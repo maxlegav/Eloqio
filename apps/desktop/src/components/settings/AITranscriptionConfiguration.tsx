@@ -31,6 +31,7 @@ import {
 import { maybeArrayElements } from "./AIPostProcessingConfiguration";
 import { ApiKeyList } from "./ApiKeyList";
 import { VoquillCloudSetting } from "./VoquillCloudSetting";
+import { ELOQUIO_FEATURES } from "../../enterprise/features";
 
 type ModelOption = {
   value: string;
@@ -143,15 +144,18 @@ export const AITranscriptionConfiguration = ({
         onChange={handleModeChange}
         options={[
           ...maybeArrayElements<SegmentedControlOption<TranscriptionMode>>(
-            !hideCloudOption,
+            !hideCloudOption && ELOQUIO_FEATURES.showCloudMode,
             [
               {
                 value: "cloud",
-                label: "Voquill",
+                label: "Eloquio",
               },
             ],
           ),
-          { value: "api", label: "API" },
+          ...maybeArrayElements<SegmentedControlOption<TranscriptionMode>>(
+            ELOQUIO_FEATURES.showApiMode,
+            [{ value: "api", label: "API" }],
+          ),
           { value: "local", label: "Local" },
         ]}
         ariaLabel="Processing mode"

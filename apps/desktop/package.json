@@ -1,5 +1,7 @@
 {
-  "name": "desktop",
+  "name": "eloquio",
+  "productName": "Eloquio",
+  "description": "Enterprise voice-to-text for confidential workflows",
   "private": true,
   "version": "0.1.0",
   "type": "module",

@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Voquill",
+  "productName": "Eloquio",
   "version": "0.1.0",
-  "identifier": "com.voquill.desktop",
+  "identifier": "com.eloquio.app",
   "build": {
     "beforeDevCommand": "npm run dev:vite",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "macOSPrivateApi": true,
     "windows": [
       {
-        "title": "Voquill",
+        "title": "Eloquio",
         "width": 900,
         "height": 610,
         "minWidth": 800,
