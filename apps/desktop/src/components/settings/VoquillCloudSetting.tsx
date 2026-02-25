@@ -4,10 +4,10 @@ import { FormattedMessage } from "react-intl";
 import { openUpgradePlanDialog } from "../../actions/pricing.actions";
 import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { useAppStore } from "../../store";
-import { getIsPaying } from "../../utils/member.utils";
+import { getIsPro } from "../../utils/member.utils";
 
 export const VoquillCloudSetting = () => {
-  const isPro = useAppStore(getIsPaying);
+  const isPro = useAppStore(getIsPro);
 
   return (
     <Stack spacing={1} alignItems="flex-start">

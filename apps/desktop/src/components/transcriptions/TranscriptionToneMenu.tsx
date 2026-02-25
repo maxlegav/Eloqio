@@ -1,35 +1,34 @@
-import { FormattedMessage } from "react-intl";
-import { useMemo, useCallback } from "react";
 import type { Tone } from "@repo/types";
 import { getRec } from "@repo/utilities";
-import { MenuPopoverBuilder } from "../common/MenuPopover";
-import type {
-  MenuPopoverItem,
-  MenuPopoverBuilderArgs,
-} from "../common/MenuPopover";
+import { useCallback, useMemo } from "react";
 import { useAppStore } from "../../store";
+import { getSortedToneIds } from "../../utils/tone.utils";
 import { getMyUserPreferences } from "../../utils/user.utils";
+import type {
+  MenuPopoverBuilderArgs,
+  MenuPopoverItem,
+} from "../common/MenuPopover";
+import { MenuPopoverBuilder } from "../common/MenuPopover";
 
 type TranscriptionToneMenuProps = {
-  includeDefaultOption?: boolean;
   children: (args: MenuPopoverBuilderArgs) => React.ReactNode;
   onToneSelect: (toneId: string | null) => void;
 };
 
-const sortTones = (tones: Tone[]): Tone[] =>
-  [...tones].sort((left, right) => left.sortOrder - right.sortOrder);
-
 export const TranscriptionToneMenu = ({
   children,
   onToneSelect,
-  includeDefaultOption = true,
 }: TranscriptionToneMenuProps) => {
-  const toneById = useAppStore((state) => state.toneById);
   const defaultTone = useAppStore((state) =>
     getRec(state.toneById, getMyUserPreferences(state)?.activeToneId),
   );
 
-  const tones = useMemo(() => sortTones(Object.values(toneById)), [toneById]);
+  const tones = useAppStore((state) => {
+    const toneIds = getSortedToneIds(state);
+    return toneIds
+      .map((toneId) => getRec(state.toneById, toneId))
+      .filter((tone): tone is Tone => tone !== null);
+  });
 
   const handleToneSelect = useCallback(
     (toneId: string | null) => {
@@ -39,45 +38,17 @@ export const TranscriptionToneMenu = ({
   );
 
   const items = useMemo<MenuPopoverItem[]>(() => {
-    const menuItems: MenuPopoverItem[] = [];
-
-    if (includeDefaultOption) {
-      const defaultLabel = defaultTone ? (
-        <FormattedMessage
-          defaultMessage="Default ({toneName})"
-          values={{ toneName: defaultTone.name }}
-        />
-      ) : (
-        <FormattedMessage defaultMessage="Default" />
-      );
-
-      menuItems.push({
-        kind: "listItem",
-        title: defaultLabel,
-        onClick: ({ close }) => {
-          handleToneSelect(null);
-          close();
-        },
-      });
-
-      if (tones.length > 0) {
-        menuItems.push({ kind: "divider" });
-      }
-    }
-
-    menuItems.push(
-      ...tones.map<MenuPopoverItem>((tone) => ({
-        kind: "listItem",
-        title: tone.name,
-        onClick: ({ close }) => {
-          handleToneSelect(tone.id);
-          close();
-        },
-      })),
-    );
+    const menuItems: MenuPopoverItem[] = tones.map<MenuPopoverItem>((tone) => ({
+      kind: "listItem",
+      title: tone.name,
+      onClick: ({ close }) => {
+        handleToneSelect(tone.id);
+        close();
+      },
+    }));
 
     return menuItems;
-  }, [defaultTone?.name, handleToneSelect, includeDefaultOption, tones]);
+  }, [defaultTone?.name, handleToneSelect, tones]);
 
   return (
     <MenuPopoverBuilder

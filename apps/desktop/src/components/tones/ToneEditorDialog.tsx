@@ -24,7 +24,7 @@ import { useAppStore } from "../../store";
 import { createId } from "../../utils/id.utils";
 import { ConfirmDialog } from "../common/ConfirmDialog";
 
-const MAX_PROMPT_LEN = 1000;
+const MAX_PROMPT_LEN = 8000;
 
 export const ToneEditorDialog = () => {
   const toneEditor = useAppStore((state) => state.toneEditor);
@@ -219,7 +219,7 @@ export const ToneEditorDialog = () => {
               value={promptTemplate}
               onChange={(event) => setPromptTemplate(event.target.value)}
               multiline
-              rows={12}
+              rows={7}
               fullWidth
               placeholder="Make it sound like a professional but friendly email. Use jargon and fun words."
               inputProps={{ maxLength: MAX_PROMPT_LEN }}

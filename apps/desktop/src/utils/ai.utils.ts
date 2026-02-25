@@ -7,17 +7,28 @@ import {
   DEFAULT_POST_PROCESSING_MODE,
   DEFAULT_TRANSCRIPTION_MODE,
 } from "../types/ai.types";
-import { getMyEffectiveUserId } from "./user.utils";
+
+export const unwrapNestedLlmResponse = <T extends Record<string, unknown>>(
+  parsed: T,
+  key: string & keyof T,
+): T => {
+  const value = parsed[key];
+  if (
+    value &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    key in value &&
+    typeof (value as Record<string, unknown>)[key] === "string"
+  ) {
+    return { ...parsed, [key]: (value as Record<string, unknown>)[key] } as T;
+  }
+  return parsed;
+};
 
 export const applyAiPreferences = (
   draft: AppState,
   preferences: UserPreferences,
 ): void => {
-  const myUserId = getMyEffectiveUserId(draft);
-  if (preferences.userId !== myUserId) {
-    return;
-  }
-
   const transcriptionMode =
     preferences.transcriptionMode ?? DEFAULT_TRANSCRIPTION_MODE;
   draft.settings.aiTranscription.mode = transcriptionMode;
@@ -40,11 +51,8 @@ export const applyAiPreferences = (
   draft.settings.agentMode.mode = agentMode as any;
   draft.settings.agentMode.selectedApiKeyId =
     preferences.agentModeApiKeyId ?? null;
-
-  draft.settings.languageSwitch.enabled =
-    preferences.languageSwitchEnabled ?? false;
-  draft.settings.languageSwitch.secondaryLanguage =
-    preferences.secondaryDictationLanguage ?? null;
-  draft.settings.languageSwitch.activeLanguage =
-    preferences.activeDictationLanguage ?? "primary";
+  draft.settings.agentMode.openclawGatewayUrl =
+    preferences.openclawGatewayUrl ?? null;
+  draft.settings.agentMode.openclawToken =
+    preferences.openclawToken ?? null;
 };

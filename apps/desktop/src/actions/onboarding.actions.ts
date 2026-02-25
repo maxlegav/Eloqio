@@ -9,7 +9,13 @@ import {
 import { getAppState, produceAppState } from "../store";
 import { DEFAULT_TRANSCRIPTION_MODE } from "../types/ai.types";
 import { CURRENT_COHORT } from "../utils/analytics.utils";
+import { getIsEnterpriseEnabled } from "../utils/enterprise.utils";
 import { CURRENT_FEATURE } from "../utils/feature.utils";
+import {
+  CHAT_TONE_ID,
+  CLEAN_TONE_ID,
+  EMAIL_TONE_ID,
+} from "../utils/tone.utils";
 import {
   GenerativePrefs,
   getAgentModePrefs,
@@ -22,6 +28,7 @@ import {
   TranscriptionPrefs,
 } from "../utils/user.utils";
 import { showErrorSnackbar } from "./app.actions";
+import { clearLocalStorageValue } from "./local-storage.actions";
 import { refreshMember } from "./member.actions";
 import { setAutoLaunchEnabled } from "./settings.actions";
 
@@ -100,7 +107,7 @@ export const submitOnboarding = async () => {
   };
 
   const postProcessingPreference: GenerativePrefs = getGenerativePrefs(state);
-  const agentModePreference: GenerativePrefs = getAgentModePrefs(state);
+  const agentModePreference = getAgentModePrefs(state);
 
   produceAppState((draft) => {
     draft.onboarding.submitting = true;
@@ -133,6 +140,10 @@ export const submitOnboarding = async () => {
       hasFinishedTutorial: false,
       hasMigratedPreferredMicrophone: true,
       cohort: CURRENT_COHORT,
+      stylingMode: "manual",
+      activeToneIds: [CLEAN_TONE_ID, EMAIL_TONE_ID, CHAT_TONE_ID],
+      selectedToneId: CHAT_TONE_ID,
+      referralSource: state.onboarding.referralSource || null,
     };
 
     const preferences: UserPreferences = {
@@ -168,20 +179,26 @@ export const submitOnboarding = async () => {
         agentModePreference.mode === "api"
           ? agentModePreference.apiKeyId
           : null,
+      openclawGatewayUrl:
+        agentModePreference.mode === "openclaw"
+          ? agentModePreference.gatewayUrl
+          : null,
+      openclawToken:
+        agentModePreference.mode === "openclaw"
+          ? agentModePreference.token
+          : null,
       lastSeenFeature: CURRENT_FEATURE,
-      isEnterprise: state.onboarding.isEnterprise,
-      languageSwitchEnabled: false,
-      secondaryDictationLanguage: null,
-      activeDictationLanguage: "primary",
+      isEnterprise: getIsEnterpriseEnabled(),
       preferredMicrophone: normalizedMicrophone,
       ignoreUpdateDialog: false,
       incognitoModeEnabled: false,
       incognitoModeIncludeInStats: false,
       dictationPillVisibility: "persistent",
+      useNewBackend: false,
     };
 
     const [savedUser, savedPreferences] = await Promise.all([
-      repo.setUser(user),
+      repo.setMyUser(user),
       preferencesRepo.setUserPreferences(preferences),
     ]);
 
@@ -209,6 +226,10 @@ export const finishOnboarding = async () => {
     throw new Error("Cannot finish onboarding: user not found");
   }
 
+  clearLocalStorageValue("voquill:checklist-writing-style");
+  clearLocalStorageValue("voquill:checklist-dictionary");
+  clearLocalStorageValue("voquill:checklist-dismissed");
+
   try {
     const repo = getUserRepo();
     const now = new Date().toISOString();
@@ -221,7 +242,7 @@ export const finishOnboarding = async () => {
       hasFinishedTutorial: true,
     };
 
-    const savedUser = await repo.setUser(updatedUser);
+    const savedUser = await repo.setMyUser(updatedUser);
     produceAppState((draft) => {
       setCurrentUser(draft, savedUser);
     });

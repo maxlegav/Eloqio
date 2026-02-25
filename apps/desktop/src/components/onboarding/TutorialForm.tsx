@@ -8,13 +8,15 @@ import {
   Typography,
 } from "@mui/material";
 import { motion } from "framer-motion";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { showConfetti, showErrorSnackbar } from "../../actions/app.actions";
+import { clearLocalStorageValue } from "../../actions/local-storage.actions";
 import {
   finishOnboarding,
   submitOnboarding,
 } from "../../actions/onboarding.actions";
+import { setSelectedToneId } from "../../actions/user.actions";
 import discordIcon from "../../assets/discord.svg";
 import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { produceAppState, useAppStore } from "../../store";
@@ -23,6 +25,9 @@ import {
   DICTATE_HOTKEY,
   getHotkeyCombosForAction,
 } from "../../utils/keyboard.utils";
+import { flashPillTooltip } from "../../utils/overlay.utils";
+import { CHAT_TONE_ID, EMAIL_TONE_ID } from "../../utils/tone.utils";
+import { getMyUser } from "../../utils/user.utils";
 import { DictationInstruction } from "../common/DictationInstruction";
 import { HotkeyBadge } from "../common/HotkeyBadge";
 import { BouncyTooltip } from "./BouncyTooltip";
@@ -64,6 +69,9 @@ export const TutorialForm = () => {
   const [submitting, setSubmitting] = useState(false);
   const [isFieldFocused, setIsFieldFocused] = useState(false);
   const [hasStartedDictating, setHasStartedDictating] = useState(false);
+  const userExists = useAppStore((state) => Boolean(getMyUser(state)));
+  const submittedRef = useRef(false);
+  const submissionCompleteRef = useRef(false);
 
   const hotkeyCombos = useAppStore((state) =>
     getHotkeyCombosForAction(state, DICTATE_HOTKEY),
@@ -87,14 +95,29 @@ export const TutorialForm = () => {
     }
   }, [keysHeld, primaryHotkey]);
 
+  const setChatTone = async (toneId: string, force = false): Promise<void> => {
+    if (!userExists && !force) {
+      return;
+    }
+
+    await setSelectedToneId(toneId);
+    flashPillTooltip();
+  };
+
   useEffect(() => {
     let cancelled = false;
     const init = async () => {
       try {
-        await submitOnboarding();
+        if (!submittedRef.current) {
+          submittedRef.current = true;
+          await submitOnboarding();
+          submissionCompleteRef.current = true;
+        }
+
         if (cancelled) {
           return;
         }
+
         produceAppState((draft) => {
           draft.onboarding.dictationOverrideEnabled = true;
         });
@@ -104,9 +127,13 @@ export const TutorialForm = () => {
         }
       }
     };
+
     init();
     return () => {
       cancelled = true;
+      setChatTone(CHAT_TONE_ID, submissionCompleteRef.current).then(() => {
+        clearLocalStorageValue("voquill:checklist-writing-style");
+      });
       produceAppState((draft) => {
         draft.onboarding.dictationOverrideEnabled = false;
       });
@@ -159,6 +186,20 @@ Great meeting you yesterday! Looking forward to next steps.
 
 Best,
 ${userName}`;
+
+  useEffect(() => {
+    if (!userExists) {
+      return;
+    }
+
+    if (stepIndex === 0) {
+      // Discord step
+      setChatTone(CHAT_TONE_ID);
+    } else if (stepIndex === 1) {
+      // Email step
+      setChatTone(EMAIL_TONE_ID);
+    }
+  }, [stepIndex, userExists]);
 
   const form = (
     <OnboardingFormLayout

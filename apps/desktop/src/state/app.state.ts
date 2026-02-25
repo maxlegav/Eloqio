@@ -2,10 +2,13 @@ import { HandlerOutput } from "@repo/functions";
 import {
   ApiKey,
   AppTarget,
+  EnterpriseConfig,
+  EnterpriseLicense,
   FullConfig,
   Hotkey,
   Member,
   Nullable,
+  OidcProvider,
   Term,
   Tone,
   Transcription,
@@ -13,6 +16,7 @@ import {
   UserPreferences,
 } from "@repo/types";
 import { AuthUser } from "../types/auth.types";
+import { Vector2 } from "../types/math.types";
 import { OverlayPhase } from "../types/overlay.types";
 import { PermissionMap } from "../types/permission.types";
 import { Toast } from "../types/toast.types";
@@ -36,7 +40,6 @@ import {
   TranscriptionsState,
 } from "./transcriptions.state";
 import { INITIAL_UPDATER_STATE, UpdaterState } from "./updater.state";
-import { Vector2 } from "../types/math.types";
 
 export type SnackbarMode = "info" | "success" | "error";
 
@@ -50,11 +53,13 @@ export type AppState = {
   keysHeld: string[];
   isRecordingHotkey: boolean;
   activeRecordingMode: Nullable<RecordingMode>;
+  dictationLanguageOverride: Nullable<string>;
   overlayPhase: OverlayPhase;
   audioLevels: number[];
   permissions: PermissionMap;
   confettiCounter: number;
   userPrefs: Nullable<UserPreferences>;
+  localStorageCache: Record<string, unknown>;
 
   memberById: Record<string, Member>;
   userById: Record<string, User>;
@@ -66,6 +71,10 @@ export type AppState = {
   toneById: Record<string, Tone>;
   config: Nullable<FullConfig>;
   priceValueByKey: Record<string, PriceValue>;
+  enterpriseConfig: Nullable<EnterpriseConfig>;
+  enterpriseLicense: Nullable<EnterpriseLicense>;
+  isEnterprise: boolean;
+  oidcProviders: OidcProvider[];
 
   onboarding: OnboardingState;
   transcriptions: TranscriptionsState;
@@ -95,6 +104,12 @@ export const INITIAL_APP_STATE: AppState = {
   userPrefs: null,
   isRecordingHotkey: false,
   activeRecordingMode: null,
+  dictationLanguageOverride: null,
+  enterpriseConfig: null,
+  enterpriseLicense: null,
+  isEnterprise: false,
+  localStorageCache: {},
+  oidcProviders: [],
   memberById: {},
   userById: {},
   termById: {},

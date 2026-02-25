@@ -1,19 +1,20 @@
+import { listify } from "@repo/utilities";
 import { invoke } from "@tauri-apps/api/core";
-import { invokeHandler } from "@repo/functions";
+import { getAuthRepo, getMemberRepo } from "../repos";
 import type { LoginMode } from "../state/login.state";
+import { getAppState, produceAppState } from "../store";
+import type { EnterpriseOidcPayload } from "../types/enterprise-oidc.types";
+import { ENTERPRISE_OIDC_COMMAND } from "../types/enterprise-oidc.types";
 import type { GoogleAuthPayload } from "../types/google-auth.types";
 import { GOOGLE_AUTH_COMMAND } from "../types/google-auth.types";
-import { getAppState, produceAppState } from "../store";
-import { getAuthRepo } from "../repos";
-import { validateEmail } from "../utils/login.utils";
 import { registerMembers } from "../utils/app.utils";
-import { listify } from "@repo/utilities";
+import { getEnterpriseTarget } from "../utils/enterprise.utils";
+import { validateEmail } from "../utils/login.utils";
 
 const tryInit = async () => {
-  await invokeHandler("member/tryInitialize", {});
-  const member = await invokeHandler("member/getMyMember", {})
-    .then((res) => res.member)
-    .catch(() => null);
+  const repo = getMemberRepo();
+  await repo.tryInitialize();
+  const member = await repo.getMyMember().catch(() => null);
   produceAppState((state) => {
     registerMembers(state, listify(member));
   });
@@ -114,9 +115,10 @@ export const submitSignUp = async (): Promise<void> => {
     produceAppState((state) => {
       state.login.status = "success";
     });
-  } catch {
+  } catch (e) {
     produceAppState((state) => {
-      state.login.errorMessage = "An error occurred while signing up.";
+      state.login.errorMessage =
+        String(e) || "An error occurred while signing up.";
       state.login.status = "idle";
     });
   }
@@ -147,6 +149,57 @@ export const setMode = (mode: LoginMode): void => {
     state.login.hasSubmittedRegistration = false;
     state.login.errorMessage = "";
   });
+};
+
+export const submitSignInWithSso = async (
+  providerId: string,
+): Promise<void> => {
+  try {
+    produceAppState((state) => {
+      state.login.status = "loading";
+      state.login.errorMessage = "";
+    });
+    const target = getEnterpriseTarget();
+    if (!target) {
+      throw new Error("Enterprise gateway URL is not configured");
+    }
+    await invoke(ENTERPRISE_OIDC_COMMAND, {
+      gatewayUrl: target.gatewayUrl,
+      providerId,
+    });
+  } catch {
+    produceAppState((state) => {
+      state.login.errorMessage = "An error occurred while signing in with SSO.";
+      state.login.status = "idle";
+    });
+  }
+};
+
+export const handleEnterpriseOidcPayload = async (
+  payload: EnterpriseOidcPayload,
+): Promise<void> => {
+  try {
+    produceAppState((state) => {
+      state.login.status = "loading";
+      state.login.errorMessage = "";
+    });
+    await getAuthRepo().signInWithSsoTokens({
+      token: payload.token,
+      refreshToken: payload.refreshToken,
+      authId: payload.authId,
+      email: payload.email,
+    });
+    await tryInit();
+    produceAppState((state) => {
+      state.login.status = "success";
+    });
+  } catch (error) {
+    console.error("Enterprise OIDC auth error:", error);
+    produceAppState((state) => {
+      state.login.errorMessage = "An error occurred while signing in with SSO.";
+      state.login.status = "idle";
+    });
+  }
 };
 
 export const signOut = async (): Promise<void> => {

@@ -14,6 +14,7 @@ export default function WelcomePage() {
   const theme = useTheme();
   const nav = useNavigate();
   const shouldGotoOnboarding = useAppStore(getShouldGoToOnboarding);
+  const enterpriseName = useAppStore((state) => state.enterpriseLicense?.org);
 
   const handleGetStarted = () => {
     resetOnboarding();
@@ -75,7 +76,14 @@ export default function WelcomePage() {
               </Typography>
             </Stack>
             <Typography variant="body1" color="text.secondary">
-              <FormattedMessage defaultMessage="Voice is your new keyboard." />
+              {enterpriseName ? (
+                <FormattedMessage
+                  defaultMessage="Voice OS for {enterpriseName}"
+                  values={{ enterpriseName }}
+                />
+              ) : (
+                <FormattedMessage defaultMessage="Voice is your new keyboard." />
+              )}
             </Typography>
           </Stack>
 

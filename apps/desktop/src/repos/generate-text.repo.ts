@@ -6,8 +6,8 @@ import {
   ClaudeModel,
   deepseekGenerateTextResponse,
   DeepseekModel,
-  geminiGenerateTextResponse,
   GeminiGenerateTextModel,
+  geminiGenerateTextResponse,
   GenerateTextModel,
   groqGenerateTextResponse,
   OpenAIGenerateTextModel,
@@ -17,6 +17,11 @@ import {
 } from "@repo/voice-ai";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { PostProcessingMode } from "../types/ai.types";
+import { invokeEnterprise } from "../utils/enterprise.utils";
+import {
+  getNewServerAuthHeaders,
+  NEW_SERVER_URL,
+} from "../utils/new-server.utils";
 import { BaseRepo } from "./base.repo";
 
 export type GenerateTextInput = {
@@ -152,6 +157,39 @@ export class OllamaGenerateTextRepo extends BaseGenerateTextRepo {
       metadata: {
         postProcessingMode: "api",
         inferenceDevice: "API • Ollama",
+      },
+    };
+  }
+}
+
+export class OpenAICompatibleGenerateTextRepo extends BaseGenerateTextRepo {
+  private baseUrl: string;
+  private model: string;
+  private apiKey: string;
+
+  constructor(url: string, model: string, apiKey?: string) {
+    super();
+    this.baseUrl = url;
+    this.model = model;
+    this.apiKey = apiKey || "";
+  }
+
+  async generateText(input: GenerateTextInput): Promise<GenerateTextOutput> {
+    const response = await openaiGenerateTextResponse({
+      baseUrl: this.baseUrl,
+      apiKey: this.apiKey,
+      model: this.model,
+      prompt: input.prompt,
+      system: input.system ?? undefined,
+      jsonResponse: input.jsonResponse,
+      customFetch: tauriFetch,
+    });
+
+    return {
+      text: response.text,
+      metadata: {
+        postProcessingMode: "api",
+        inferenceDevice: "API • OpenAI Compatible",
       },
     };
   }
@@ -307,6 +345,64 @@ export class ClaudeGenerateTextRepo extends BaseGenerateTextRepo {
       metadata: {
         postProcessingMode: "api",
         inferenceDevice: "API • Claude",
+      },
+    };
+  }
+}
+
+export class EnterpriseGenerateTextRepo extends BaseGenerateTextRepo {
+  private model: CloudModel;
+
+  constructor(model: CloudModel = "medium") {
+    super();
+    this.model = model;
+  }
+
+  async generateText(input: GenerateTextInput): Promise<GenerateTextOutput> {
+    const response = await invokeEnterprise("ai/generateText", {
+      system: input.system,
+      prompt: input.prompt,
+      jsonResponse: input.jsonResponse,
+      model: this.model,
+    });
+
+    return {
+      text: response.text,
+      metadata: {
+        postProcessingMode: "cloud",
+      },
+    };
+  }
+}
+
+export class NewServerGenerateTextRepo extends BaseGenerateTextRepo {
+  async generateText(input: GenerateTextInput): Promise<GenerateTextOutput> {
+    const headers = await getNewServerAuthHeaders();
+
+    const messages: { role: "system" | "user"; content: string }[] = [];
+    if (input.system) {
+      messages.push({ role: "system", content: input.system });
+    }
+    messages.push({ role: "user", content: input.prompt });
+
+    const res = await fetch(`${NEW_SERVER_URL}/v1/process`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ messages }),
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Request failed with status ${res.status}`);
+    }
+
+    const body = await res.json();
+
+    // Wrap in expected JSON format for postProcessTranscript parsing
+    return {
+      text: JSON.stringify({ processedTranscription: body.text }),
+      metadata: {
+        postProcessingMode: "cloud",
       },
     };
   }

@@ -1,40 +1,35 @@
 import {
-    Button,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Stack,
-    Typography,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Stack,
+  Typography,
 } from "@mui/material";
 import { FormattedMessage } from "react-intl";
-import { setLanguageSwitchEnabled } from "../../actions/user.actions";
 import { produceAppState, useAppStore } from "../../store";
+import { getEffectiveStylingMode } from "../../utils/feature.utils";
 import {
-    AGENT_DICTATE_HOTKEY,
-    DICTATE_HOTKEY,
-    LANGUAGE_SWITCH_HOTKEY,
+  AGENT_DICTATE_HOTKEY,
+  CANCEL_TRANSCRIPTION_HOTKEY,
+  DICTATE_HOTKEY,
+  SWITCH_WRITING_STYLE_HOTKEY,
 } from "../../utils/keyboard.utils";
 import { HotkeySetting } from "./HotkeySetting";
 
 export const ShortcutsDialog = () => {
-  const { open, hotkeysStatus, languageSwitchEnabled } = useAppStore(
-    (state) => ({
-      open: state.settings.shortcutsDialogOpen,
-      hotkeysStatus: state.settings.hotkeysStatus,
-      languageSwitchEnabled: state.settings.languageSwitch.enabled,
-    }),
-  );
+  const { open, hotkeysStatus, isManualStyling } = useAppStore((state) => ({
+    open: state.settings.shortcutsDialogOpen,
+    hotkeysStatus: state.settings.hotkeysStatus,
+    isManualStyling: getEffectiveStylingMode(state) === "manual",
+  }));
 
   const handleClose = () => {
     produceAppState((draft) => {
       draft.settings.shortcutsDialogOpen = false;
     });
-  };
-
-  const handleLanguageSwitchEnabledChange = (enabled: boolean) => {
-    void setLanguageSwitchEnabled(enabled);
   };
 
   const renderContent = () => {
@@ -68,16 +63,21 @@ export const ShortcutsDialog = () => {
           actionName={AGENT_DICTATE_HOTKEY}
         />
         <HotkeySetting
-          title={
-            <FormattedMessage defaultMessage="Switch dictation language" />
-          }
+          title={<FormattedMessage defaultMessage="Cancel transcription" />}
           description={
-            <FormattedMessage defaultMessage="Quickly switch between your primary and secondary dictation languages." />
+            <FormattedMessage defaultMessage="Cancel the current dictation or agent session." />
           }
-          actionName={LANGUAGE_SWITCH_HOTKEY}
-          enabled={languageSwitchEnabled}
-          onEnabledChange={handleLanguageSwitchEnabledChange}
+          actionName={CANCEL_TRANSCRIPTION_HOTKEY}
         />
+        {isManualStyling && (
+          <HotkeySetting
+            title={<FormattedMessage defaultMessage="Switch writing style" />}
+            description={
+              <FormattedMessage defaultMessage="Cycle through your active writing styles." />
+            }
+            actionName={SWITCH_WRITING_STYLE_HOTKEY}
+          />
+        )}
       </Stack>
     );
   };

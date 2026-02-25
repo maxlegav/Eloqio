@@ -21,14 +21,16 @@ export type UserPreferences = {
   gpuEnumerationEnabled: boolean;
   agentMode: Nullable<AgentMode>;
   agentModeApiKeyId: Nullable<string>;
+  openclawGatewayUrl: Nullable<string>;
+  openclawToken: Nullable<string>;
   lastSeenFeature: Nullable<string>;
-  isEnterprise: boolean;
-  languageSwitchEnabled: boolean;
-  secondaryDictationLanguage: Nullable<string>;
-  activeDictationLanguage: "primary" | "secondary";
   preferredMicrophone: Nullable<string>;
   ignoreUpdateDialog: boolean;
   incognitoModeEnabled: boolean;
   incognitoModeIncludeInStats: boolean;
   dictationPillVisibility: DictationPillVisibility;
+  useNewBackend: boolean;
+
+  // deprecated
+  isEnterprise: boolean;
 };

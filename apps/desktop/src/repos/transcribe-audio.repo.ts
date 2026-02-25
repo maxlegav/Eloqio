@@ -11,7 +11,6 @@ import {
   OpenAITranscriptionModel,
   TranscriptionModel,
 } from "@repo/voice-ai";
-import { speachesTranscribeAudio } from "../utils/speaches.utils";
 import { invoke } from "@tauri-apps/api/core";
 import { getAppState } from "../store";
 import {
@@ -26,7 +25,12 @@ import {
   ensureFloat32Array,
   normalizeSamples,
 } from "../utils/audio.utils";
+import { getEffectiveAuth } from "../utils/auth.utils";
+import { invokeEnterprise } from "../utils/enterprise.utils";
+import { NEW_SERVER_URL } from "../utils/new-server.utils";
 import { loadDiscreteGpus } from "../utils/gpu.utils";
+import { openaiCompatibleTranscribeAudio } from "../utils/openai-compatible-transcribe.utils";
+import { speachesTranscribeAudio } from "../utils/speaches.utils";
 import {
   mergeTranscriptions,
   splitAudioTranscription,
@@ -112,7 +116,9 @@ export abstract class BaseTranscribeAudioRepo extends BaseRepo {
     }
 
     const segmentDurationSec = this.getSegmentDurationSec();
-    const segmentSampleCount = Math.floor(input.sampleRate * segmentDurationSec);
+    const segmentSampleCount = Math.floor(
+      input.sampleRate * segmentDurationSec,
+    );
 
     // If audio fits in a single segment, transcribe directly
     if (floatSamples.length <= segmentSampleCount) {
@@ -577,5 +583,210 @@ export class SpeachesTranscribeAudioRepo extends BaseTranscribeAudioRepo {
         transcriptionMode: "api",
       },
     };
+  }
+}
+
+export class OpenAICompatibleTranscribeAudioRepo extends BaseTranscribeAudioRepo {
+  private baseUrl: string;
+  private model: string;
+  private apiKey?: string;
+
+  constructor(baseUrl: string, model: string, apiKey?: string) {
+    super();
+    this.baseUrl = baseUrl;
+    this.model = model;
+    this.apiKey = apiKey;
+  }
+
+  protected getSegmentDurationSec(): number {
+    return 60;
+  }
+
+  protected getOverlapDurationSec(): number {
+    return 5;
+  }
+
+  protected getBatchChunkCount(): number {
+    return 3;
+  }
+
+  protected async transcribeSegment(
+    input: TranscribeSegmentInput,
+  ): Promise<TranscribeAudioOutput> {
+    const wavBuffer = buildWaveFile(input.samples, input.sampleRate);
+
+    const { text: transcript } = await openaiCompatibleTranscribeAudio({
+      baseUrl: this.baseUrl,
+      model: this.model,
+      apiKey: this.apiKey,
+      blob: wavBuffer,
+      ext: "wav",
+      prompt: input.prompt ?? undefined,
+      language: input.language,
+    });
+
+    return {
+      text: transcript,
+      metadata: {
+        inferenceDevice: "API • OpenAI Compatible",
+        modelSize: this.model,
+        transcriptionMode: "api",
+      },
+    };
+  }
+}
+
+export class EnterpriseTranscribeAudioRepo extends BaseTranscribeAudioRepo {
+  protected getSegmentDurationSec(): number {
+    return 60;
+  }
+
+  protected getOverlapDurationSec(): number {
+    return 5;
+  }
+
+  protected getBatchChunkCount(): number {
+    return 3;
+  }
+
+  protected async transcribeSegment(
+    input: TranscribeSegmentInput,
+  ): Promise<TranscribeAudioOutput> {
+    const wavBuffer = buildWaveFile(input.samples, input.sampleRate);
+
+    const bytes = new Uint8Array(wavBuffer);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]!);
+    }
+
+    const audioBase64 = btoa(binary);
+    const response = await invokeEnterprise("ai/transcribeAudio", {
+      prompt: input.prompt,
+      audioBase64,
+      audioMimeType: "audio/wav",
+      language: input.language,
+    });
+
+    return {
+      text: response.text,
+      metadata: {
+        transcriptionMode: "cloud",
+      },
+    };
+  }
+}
+
+export class NewServerTranscribeAudioRepo extends BaseTranscribeAudioRepo {
+  protected getSegmentDurationSec(): number {
+    return 300;
+  }
+
+  protected getOverlapDurationSec(): number {
+    return 0;
+  }
+
+  protected getBatchChunkCount(): number {
+    return 1;
+  }
+
+  protected async transcribeSegment(
+    input: TranscribeSegmentInput,
+  ): Promise<TranscribeAudioOutput> {
+    const wsUrl = NEW_SERVER_URL.replace(/^http/, "ws") + "/v1/transcribe";
+
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(wsUrl);
+      let resolved = false;
+
+      const cleanup = () => {
+        ws.close();
+      };
+
+      const settle = (
+        fn: typeof resolve | typeof reject,
+        value: TranscribeAudioOutput | Error,
+      ) => {
+        if (resolved) return;
+        resolved = true;
+        (fn as (v: unknown) => void)(value);
+      };
+
+      ws.onopen = async () => {
+        try {
+          const auth = getEffectiveAuth();
+          const user = auth.currentUser;
+          if (!user) {
+            settle(reject, new Error("Not authenticated"));
+            cleanup();
+            return;
+          }
+          const idToken = await user.getIdToken();
+          ws.send(JSON.stringify({ type: "auth", idToken }));
+        } catch (err) {
+          settle(reject, err instanceof Error ? err : new Error(String(err)));
+          cleanup();
+        }
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+
+          if (msg.type === "error") {
+            settle(reject, new Error(`${msg.code}: ${msg.message}`));
+            cleanup();
+            return;
+          }
+
+          if (msg.type === "authenticated") {
+            const firstLine = input.prompt?.split("\n")[0] ?? "";
+            const glossary = firstLine
+              .replace(/^Glossary:\s*/i, "")
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean);
+            ws.send(
+              JSON.stringify({
+                type: "config",
+                sampleRate: input.sampleRate,
+                glossary,
+                language: input.language,
+              }),
+            );
+            return;
+          }
+
+          if (msg.type === "ready") {
+            ws.send(input.samples.buffer);
+            ws.send(JSON.stringify({ type: "finalize" }));
+            return;
+          }
+
+          if (msg.type === "transcript") {
+            settle(resolve, {
+              text: msg.text,
+              metadata: {
+                transcriptionMode: "cloud",
+              },
+            });
+            cleanup();
+            return;
+          }
+        } catch (err) {
+          settle(reject, err instanceof Error ? err : new Error(String(err)));
+          cleanup();
+        }
+      };
+
+      ws.onerror = () => {
+        settle(reject, new Error("WebSocket error"));
+        cleanup();
+      };
+
+      ws.onclose = () => {
+        settle(reject, new Error("Connection closed unexpectedly"));
+      };
+    });
   }
 }

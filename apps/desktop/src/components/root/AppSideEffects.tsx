@@ -1,8 +1,13 @@
-import { invokeHandler } from "@repo/functions";
-import { Member, Nullable, User } from "@repo/types";
+import {
+  EnterpriseConfig,
+  EnterpriseLicense,
+  Member,
+  Nullable,
+  User,
+} from "@repo/types";
 import { listify } from "@repo/utilities";
+import { getVersion } from "@tauri-apps/api/app";
 import dayjs from "dayjs";
-import mixpanel from "mixpanel-browser";
 import { useEffect, useRef, useState } from "react";
 import { combineLatest, from, Observable, of } from "rxjs";
 import { showErrorSnackbar, showSnackbar } from "../../actions/app.actions";
@@ -10,16 +15,28 @@ import {
   migrateLocalUserToCloud,
   refreshCurrentUser,
 } from "../../actions/user.actions";
-import { useAsyncEffect } from "../../hooks/async.hooks";
+import { useAsyncData, useAsyncEffect } from "../../hooks/async.hooks";
 import { useIntervalAsync, useKeyDownHandler } from "../../hooks/helper.hooks";
 import { useStreamWithSideEffects } from "../../hooks/stream.hooks";
 import { detectLocale } from "../../i18n";
+import {
+  getAuthRepo,
+  getConfigRepo,
+  getEnterpriseRepo,
+  getMemberRepo,
+  getUserRepo,
+} from "../../repos";
 import { produceAppState, useAppStore } from "../../store";
 import { AuthUser } from "../../types/auth.types";
-import { CURRENT_COHORT } from "../../utils/analytics.utils";
+import { CURRENT_COHORT, getMixpanel } from "../../utils/analytics.utils";
 import { registerMembers, registerUsers } from "../../utils/app.utils";
-import { getEffectiveAuth } from "../../utils/auth.utils";
+import {
+  getEnterpriseTarget,
+  invokeEnterprise,
+  loadEnterpriseTarget,
+} from "../../utils/enterprise.utils";
 import { getIsDevMode } from "../../utils/env.utils";
+import { getLogger } from "../../utils/log.utils";
 import { getPlatform } from "../../utils/platform.utils";
 import {
   getEffectivePillVisibility,
@@ -35,11 +52,24 @@ const AUTH_READY_TIMEOUT_MS = 4_000;
 // 10 minutes
 const CONFIG_REFRESH_INTERVAL_MS = 1000 * 60 * 10;
 
+// 5 minutes
+const TOKEN_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+
+// 60 seconds
+const ENTERPRISE_REFRESH_INTERVAL_MS = 1000 * 60;
+
 export const AppSideEffects = () => {
   const [authReady, setAuthReady] = useState(false);
   const [streamReady, setStreamReady] = useState(false);
   const [initReady, setInitReady] = useState(false);
+  const [enterpriseReady, setEnterpriseReady] = useState(false);
+  const tokensRefreshedRef = useRef(false);
   const authReadyRef = useRef(false);
+  const isEnterprise = useAppStore((state) => state.isEnterprise);
+  const versionData = useAsyncData(getVersion, []);
+  const allowDevTools = useAppStore(
+    (state) => state.enterpriseConfig?.allowDevTools ?? true,
+  );
   const userId = useAppStore((state) => state.auth?.uid ?? "");
   const initialized = useAppStore((state) => state.initialized);
   const member = useAppStore((state) => {
@@ -56,6 +86,7 @@ export const AppSideEffects = () => {
   const prefs = useAppStore((state) => getMyUserPreferences(state));
 
   const onAuthStateChanged = (user: AuthUser | null) => {
+    getLogger().info(`Auth state changed (uid=${user?.uid ?? "none"})`);
     authReadyRef.current = true;
     setAuthReady(true);
     produceAppState((draft) => {
@@ -65,19 +96,26 @@ export const AppSideEffects = () => {
   };
 
   useEffect(() => {
-    // Safety timeout: if Firebase Auth doesn't respond within the timeout,
-    // proceed with null auth state. This handles cases where IndexedDB
-    // initialization hangs on some Linux systems.
+    if (allowDevTools) {
+      return;
+    }
+
+    const handler = (e: MouseEvent) => e.preventDefault();
+    document.addEventListener("contextmenu", handler);
+    return () => document.removeEventListener("contextmenu", handler);
+  }, [isEnterprise, allowDevTools]);
+
+  useEffect(() => {
+    authReadyRef.current = false;
+
     const timeoutId = setTimeout(() => {
       if (!authReadyRef.current) {
-        console.warn(
-          "[AppSideEffects] Firebase Auth timed out, proceeding without auth",
-        );
+        getLogger().warning("Auth timed out, proceeding without auth");
         onAuthStateChanged(null);
       }
     }, AUTH_READY_TIMEOUT_MS);
 
-    const unsubscribe = getEffectiveAuth().onAuthStateChanged(
+    const unsubscribe = getAuthRepo().onAuthStateChanged(
       onAuthStateChanged,
       (error) => {
         showErrorSnackbar(error);
@@ -89,11 +127,11 @@ export const AppSideEffects = () => {
       clearTimeout(timeoutId);
       unsubscribe();
     };
-  }, []);
+  }, [isEnterprise]);
 
   useIntervalAsync(CONFIG_REFRESH_INTERVAL_MS, async () => {
-    const config = await invokeHandler("config/getFullConfig", {})
-      .then((res) => res.config)
+    const config = await getConfigRepo()
+      .getFullConfig()
       .catch(() => null);
 
     if (config) {
@@ -101,6 +139,54 @@ export const AppSideEffects = () => {
         draft.config = config;
       });
     }
+  }, []);
+
+  useIntervalAsync(ENTERPRISE_REFRESH_INTERVAL_MS, async () => {
+    getLogger().verbose("Loading enterprise target");
+    const debugInfo = await loadEnterpriseTarget();
+
+    getLogger().verbose(
+      "Enterprise target reloaded from",
+      debugInfo,
+      getEnterpriseTarget(),
+    );
+
+    let config: Nullable<EnterpriseConfig> = null;
+    let license: Nullable<EnterpriseLicense> = null;
+    let isEnterprise = false;
+
+    const repo = getEnterpriseRepo();
+    if (repo) {
+      isEnterprise = true;
+      [config, license] = await repo.getConfig().catch((e) => {
+        getLogger().error(`Failed to refresh enterprise config: ${e}`);
+        return [null, null];
+      });
+    }
+
+    const oidcProviders = isEnterprise
+      ? await invokeEnterprise("oidcProvider/listEnabled", {})
+          .then((res) => res.providers)
+          .catch(() => [])
+      : [];
+
+    produceAppState((draft) => {
+      draft.enterpriseConfig = config;
+      draft.enterpriseLicense = license;
+      draft.isEnterprise = isEnterprise;
+      draft.oidcProviders = oidcProviders;
+    });
+
+    if (!tokensRefreshedRef.current) {
+      tokensRefreshedRef.current = true;
+      await getAuthRepo().refreshTokens();
+    }
+
+    setEnterpriseReady(true);
+  }, []);
+
+  useIntervalAsync(TOKEN_REFRESH_INTERVAL_MS, async () => {
+    await getAuthRepo().refreshTokens();
   }, []);
 
   useStreamWithSideEffects({
@@ -115,13 +201,13 @@ export const AppSideEffects = () => {
 
       return combineLatest([
         from(
-          invokeHandler("member/getMyMember", {})
-            .then((res) => res.member)
+          getMemberRepo()
+            .getMyMember()
             .catch(() => null),
         ),
         from(
-          invokeHandler("user/getMyUser", {})
-            .then((res) => res.user)
+          getUserRepo()
+            .getMyUser()
             .catch(() => null),
         ),
       ]);
@@ -138,7 +224,7 @@ export const AppSideEffects = () => {
         registerMembers(draft, listify(members));
       });
     },
-    dependencies: [userId, authReady],
+    dependencies: [userId, authReady, isEnterprise],
   });
 
   useAsyncEffect(async () => {
@@ -146,15 +232,16 @@ export const AppSideEffects = () => {
       await refreshCurrentUser();
       setInitReady(true);
     }
-  }, [authReady]);
+  }, [authReady, isEnterprise]);
 
   useEffect(() => {
-    if (streamReady && initReady && !initialized) {
+    if (streamReady && initReady && !initialized && enterpriseReady) {
+      getLogger().info("App fully initialized");
       produceAppState((draft) => {
         draft.initialized = true;
       });
     }
-  }, [streamReady, initReady, initialized]);
+  }, [streamReady, initReady, initialized, enterpriseReady]);
 
   const isMigratingLocalUserRef = useRef(false);
   const memberPlan = member?.plan;
@@ -172,10 +259,13 @@ export const AppSideEffects = () => {
     }
 
     isMigratingLocalUserRef.current = true;
+    getLogger().info("Migrating local user to cloud");
     (async () => {
       try {
         await migrateLocalUserToCloud();
+        getLogger().info("Local user migrated to cloud successfully");
       } catch (error) {
+        getLogger().error(`Failed to migrate local user to cloud: ${error}`);
         showErrorSnackbar(error);
       } finally {
         isMigratingLocalUserRef.current = false;
@@ -190,10 +280,15 @@ export const AppSideEffects = () => {
       return;
     }
 
+    const mp = getMixpanel();
+    if (!mp) {
+      return;
+    }
+
     const currentUserId = auth?.uid ?? null;
     const prevUserId = prevUserIdRef.current;
     if (prevUserId && !currentUserId) {
-      mixpanel.reset();
+      mp.reset();
     }
 
     const isPro = member?.plan === "pro";
@@ -211,24 +306,23 @@ export const AppSideEffects = () => {
     const planStatus = member?.plan ?? "community";
 
     if (currentUserId && currentUserId !== prevUserId) {
-      mixpanel.identify(currentUserId);
+      mp.identify(currentUserId);
 
-      // Set creation time to ISO 8601 (2024-01-01T12:00:00.000Z) for Mixpanel
-      mixpanel.people.set_once({
+      mp.people.set_once({
         $created: new Date().toISOString(),
         initialPlatform: platform,
         initialLocale: locale,
         initialCohort: CURRENT_COHORT,
       });
 
-      mixpanel.register_once({
+      mp.register_once({
         initialPlatform: platform,
         initialLocale: locale,
         initialCohort: CURRENT_COHORT,
       });
     }
 
-    mixpanel.people.set({
+    mp.people.set({
       $email: auth?.email ?? undefined,
       $name: auth?.displayName ?? undefined,
       planStatus,
@@ -242,9 +336,12 @@ export const AppSideEffects = () => {
       activeSystemCohort: CURRENT_COHORT,
       daysSinceOnboarded,
       pillState: getEffectivePillVisibility(prefs?.dictationPillVisibility),
+      company: cloudUser?.company ?? undefined,
+      title: cloudUser?.title ?? undefined,
+      referralSource: cloudUser?.referralSource ?? undefined,
     });
 
-    mixpanel.register({
+    mp.register({
       userId: currentUserId,
       planStatus,
       isPro,
@@ -258,8 +355,14 @@ export const AppSideEffects = () => {
       pillState: getEffectivePillVisibility(prefs?.dictationPillVisibility),
     });
 
+    if (versionData.state === "success") {
+      mp.register({
+        appVersion: versionData.data,
+      });
+    }
+
     prevUserIdRef.current = currentUserId;
-  }, [initialized, auth, member, cloudUser, localUser, prefs]);
+  }, [initialized, auth, member, cloudUser, localUser, prefs, versionData]);
 
   // You cannot refresh the page in Tauri, here's a hotkey to help with that
   useKeyDownHandler({

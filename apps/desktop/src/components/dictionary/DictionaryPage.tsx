@@ -6,7 +6,10 @@ import dayjs from "dayjs";
 import { useCallback } from "react";
 import { FormattedMessage } from "react-intl";
 import { showErrorSnackbar } from "../../actions/app.actions";
+import { loadDictionary } from "../../actions/dictionary.actions";
 import { ELOQUIO_CONFIG } from "../../enterprise/config";
+import { setLocalStorageValue } from "../../actions/local-storage.actions";
+import { useAsyncEffect } from "../../hooks/async.hooks";
 import { getTermRepo } from "../../repos";
 import { produceAppState, useAppStore } from "../../store";
 import { createId } from "../../utils/id.utils";
@@ -16,6 +19,10 @@ import { DictionaryRow } from "./DictionaryRow";
 
 export default function DictionaryPage() {
   const termIds = useAppStore((state) => state.dictionary.termIds);
+
+  useAsyncEffect(async () => {
+    await loadDictionary();
+  }, []);
 
   const handleAddTerm = useCallback(async (replacement: boolean) => {
     const newTerm: Term = {
@@ -36,6 +43,7 @@ export default function DictionaryPage() {
       produceAppState((draft) => {
         draft.termById[created.id] = created;
       });
+      setLocalStorageValue("voquill:checklist-dictionary", true);
     } catch (error) {
       produceAppState((draft) => {
         delete draft.termById[newTerm.id];
