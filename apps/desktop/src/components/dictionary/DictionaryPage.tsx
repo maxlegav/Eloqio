@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { useCallback } from "react";
 import { FormattedMessage } from "react-intl";
 import { showErrorSnackbar } from "../../actions/app.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { getTermRepo } from "../../repos";
 import { produceAppState, useAppStore } from "../../store";
 import { createId } from "../../utils/id.utils";
@@ -88,7 +89,10 @@ export default function DictionaryPage() {
     <VirtualizedListPage
       title={<FormattedMessage defaultMessage="Dictionary" />}
       subtitle={
-        <FormattedMessage defaultMessage="Voquill may misunderstand you on occasion. If you see certain words being missed frequently, you can define a replacement rule here to fix the spelling automatically." />
+        <FormattedMessage
+          defaultMessage="{appName} may misunderstand you on occasion. If you see certain words being missed frequently, you can define a replacement rule here to fix the spelling automatically."
+          values={{ appName: ELOQUIO_CONFIG.appName }}
+        />
       }
       action={addButton}
       items={termIds}

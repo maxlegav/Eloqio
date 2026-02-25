@@ -2,6 +2,7 @@ import { Stack, Typography } from "@mui/material";
 import { useCallback } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { setActiveTone } from "../../actions/tone.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { useAppStore } from "../../store";
 import { VirtualizedListPage } from "../common/VirtualizedListPage";
 import { ToneSelect } from "../tones/ToneSelect";
@@ -65,11 +66,11 @@ export default function StylingPage() {
             1. Open up the app you want to style (like Slack or Chrome).
           </Typography>
           <Typography variant="body2">
-            2. Click on the Voquill icon in the menu bar, and click "Register
+            2. Click on the {ELOQUIO_CONFIG.appName} icon in the menu bar, and click "Register
             this app".
           </Typography>
           <Typography variant="body2">
-            3. Go back to Voquill, and select a writing style for that app.
+            3. Go back to {ELOQUIO_CONFIG.appName}, and select a writing style for that app.
           </Typography>
         </Stack>
       }

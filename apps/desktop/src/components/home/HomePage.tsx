@@ -1,5 +1,6 @@
 import { Box, Stack, TextField, Typography } from "@mui/material";
 import { FormattedMessage, useIntl } from "react-intl";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { useAppStore } from "../../store";
 import { getMyUser, getMyUserName } from "../../utils/user.utils";
 import { DictationInstruction } from "../common/DictationInstruction";
@@ -51,10 +52,13 @@ export default function HomePage() {
           title={intl.formatMessage({
             defaultMessage: "Try it out",
           })}
-          description={intl.formatMessage({
-            defaultMessage:
-              "Use this space to type or paste anything and see how Voquill handles it. Nothing you write here is saved.",
-          })}
+          description={intl.formatMessage(
+            {
+              defaultMessage:
+                "Use this space to type or paste anything and see how {appName} handles it. Nothing you write here is saved.",
+            },
+            { appName: ELOQUIO_CONFIG.appName },
+          )}
         >
           <Box sx={{ mb: 2 }}>
             <DictationInstruction />

@@ -19,6 +19,7 @@ import {
   setIncognitoModeEnabled,
   setIncognitoModeIncludeInStats,
 } from "../../actions/user.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { produceAppState, useAppStore } from "../../store";
 import {
   getEffectivePillVisibility,
@@ -85,7 +86,10 @@ export const MoreSettingsDialog = () => {
           <SettingSection
             title={<FormattedMessage defaultMessage="Incognito mode" />}
             description={
-              <FormattedMessage defaultMessage="When enabled, Voquill will not save transcription history or audio snapshots." />
+              <FormattedMessage
+                defaultMessage="When enabled, {appName} will not save transcription history or audio snapshots."
+                values={{ appName: ELOQUIO_CONFIG.appName }}
+              />
             }
             action={
               <Switch

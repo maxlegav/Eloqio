@@ -1,30 +1,37 @@
-import { AppsCarousel } from "../components/apps-carousel";
-import DiscordSection from "../components/discord-section";
-import { HeroSection } from "../components/hero";
-import OfflineShowcase from "../components/offline-showcase";
-import PricingSection from "../components/pricing-section";
-import PrivacyShowcase from "../components/privacy-showcase";
-import SpeedShowcase from "../components/speed-showcase";
-import TextCleanupShowcase from "../components/text-cleanup-showcase";
-import VideoSection from "../components/video-section";
-import BaseLayout from "../layouts/BaseLayout";
-import PageLayout from "../layouts/PageLayout";
+import {
+  HeroSection,
+  WorksEverywhereSection,
+  TypingTrapSection,
+  VideoSection,
+  SecuritySection,
+  SpeedSection,
+  ToneSwitchingSection,
+  PricingSection,
+  TestimonialSection,
+  FinalCtaSection,
+} from "../components/landing-sections";
+import SiteFooter from "../components/site-footer";
+import SiteHeader from "../components/site-header";
+import styles from "../styles/page.module.css";
 
 function HomePage() {
   return (
-    <BaseLayout>
-      <PageLayout>
+    <div className={styles.page}>
+      <SiteHeader />
+      <main className={styles.main}>
         <HeroSection />
+        <WorksEverywhereSection />
+        <TypingTrapSection />
         <VideoSection />
-        <AppsCarousel />
-        <SpeedShowcase />
-        <PrivacyShowcase />
-        <TextCleanupShowcase />
-        <OfflineShowcase />
+        <SecuritySection />
+        <SpeedSection />
+        <ToneSwitchingSection />
         <PricingSection />
-        <DiscordSection />
-      </PageLayout>
-    </BaseLayout>
+        <TestimonialSection />
+        <FinalCtaSection />
+      </main>
+      <SiteFooter />
+    </div>
   );
 }
 

@@ -10,6 +10,7 @@ import {
   type SxProps,
 } from "@mui/material";
 import { FormattedMessage } from "react-intl";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 
 type FaqRowProps = {
   title?: React.ReactNode;
@@ -54,7 +55,10 @@ export const Faq = ({ sx }: FaqProps) => {
             <FormattedMessage defaultMessage="What websites does it work on?" />
           }
         >
-          <FormattedMessage defaultMessage="Voquill works on virtually any website with text input fields - email clients, social media, forms, documents, and more." />
+          <FormattedMessage
+            defaultMessage="{appName} works on virtually any website with text input fields - email clients, social media, forms, documents, and more."
+            values={{ appName: ELOQUIO_CONFIG.appName }}
+          />
         </FaqRow>
         <FaqRow
           title={<FormattedMessage defaultMessage="Is my voice data secure?" />}

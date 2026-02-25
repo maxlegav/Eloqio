@@ -4,6 +4,7 @@ import { FormattedMessage } from "react-intl";
 import { useNavigate } from "react-router-dom";
 import { resetOnboarding } from "../../actions/onboarding.actions";
 import { clearGotStartedAt } from "../../actions/user.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { useAppStore } from "../../store";
 import { getShouldGoToOnboarding } from "../../utils/user.utils";
 import { Logo } from "../common/Logo";
@@ -70,7 +71,7 @@ export default function WelcomePage() {
             <Stack direction="row" alignItems="center" spacing={1}>
               <Logo width="4rem" height="4rem" />
               <Typography variant="h3" fontWeight={700}>
-                Voquill
+                {ELOQUIO_CONFIG.appName}
               </Typography>
             </Stack>
             <Typography variant="body1" color="text.secondary">

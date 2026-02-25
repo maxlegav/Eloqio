@@ -1,4 +1,5 @@
 import { Stack, Typography, type StackProps } from "@mui/material";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { Logo } from "./Logo";
 
 export type LogoWithTextProps = StackProps;
@@ -24,7 +25,7 @@ export const LogoWithText = ({ sx, ...rest }: LogoWithTextProps) => {
           display: { xs: "none", sm: "block" },
         }}
       >
-        Voquill
+        {ELOQUIO_CONFIG.appName}
       </Typography>
     </Stack>
   );

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Eloquio - Enterprise AI Voice Dictation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&amp;family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#37ec13",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#132210",
+                        "cream": "#F4E6DA",
+                        "sage": "#A8C5A3",
+                        "sage-dark": "#6B8E65",
+                        "sage-accent": "#5E8C61", 
+                    },
+                    fontFamily: {
+                        "sans": ["DM Sans", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"],
+                        "display": ["Playfair Display", "serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .font-expressive {
+                @apply font-serif italic tracking-wide;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#121811] dark:text-white font-sans overflow-x-hidden antialiased selection:bg-sage selection:text-white">
+<div class="relative flex min-h-screen w-full flex-col">
+<header class="sticky top-0 z-50 flex items-center justify-between border-b border-black/5 bg-white/80 dark:bg-[#132210]/90 backdrop-blur-md px-10 py-4 transition-all">
+<div class="flex items-center gap-4">
+<div class="size-8 text-primary flex items-center justify-center rounded bg-black">
+<span class="material-symbols-outlined text-primary" style="font-size: 24px;">graphic_eq</span>
+</div>
+<h2 class="text-xl font-serif font-bold italic tracking-wide text-sage-dark dark:text-primary">Eloquio</h2>
+</div>
+<div class="hidden md:flex flex-1 justify-end gap-8 items-center">
+<nav class="flex items-center gap-9">
+<a class="text-sm font-medium hover:text-sage-dark transition-colors tracking-wide" href="#">Features</a>
+<a class="text-sm font-medium hover:text-sage-dark transition-colors tracking-wide" href="#">Enterprise</a>
+<a class="text-sm font-medium hover:text-sage-dark transition-colors tracking-wide" href="#">Pricing</a>
+<a class="text-sm font-medium hover:text-sage-dark transition-colors tracking-wide" href="#">Contact</a>
+</nav>
+<button class="flex cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-6 bg-primary text-[#121811] text-sm font-bold leading-normal hover:bg-[#2ed60f] transition-all hover:scale-105 shadow-md shadow-primary/20">
+<span class="truncate">Download Free</span>
+</button>
+</div>
+<div class="md:hidden">
+<span class="material-symbols-outlined">menu</span>
+</div>
+</header>
+<section class="relative flex flex-col items-center justify-center py-24 px-4 bg-cream dark:bg-[#1c2e18] overflow-hidden">
+<div class="max-w-[960px] flex flex-col items-center gap-8 text-center z-10">
+<div class="inline-flex items-center gap-2 rounded-full bg-white/60 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-sage-dark border border-sage/40 shadow-sm">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+<span>New: Voice-to-Code 2.0</span>
+</div>
+<h1 class="text-5xl md:text-8xl font-black leading-[1.1] tracking-tight text-[#121811] dark:text-white drop-shadow-sm">
+<span class="font-serif italic text-sage-accent font-medium pr-2">Stop Typing.</span><br/>
+<span class="font-serif text-sage-dark dark:text-primary font-black italic">Start Prompting.</span>
+</h1>
+<p class="text-lg md:text-2xl font-normal leading-relaxed max-w-[720px] text-gray-700 dark:text-gray-300 font-sans">
+                Unlock superior prompt engineering with enterprise-grade AI voice dictation. Speak <span class="font-serif italic text-sage-dark font-bold">structured instructions</span>, not just text.
+            </p>
+<div class="flex flex-wrap gap-4 mt-6 justify-center">
+<button class="flex min-w-[180px] cursor-pointer items-center justify-center rounded-full h-14 px-8 bg-primary text-[#121811] text-lg font-bold shadow-xl shadow-primary/20 hover:scale-105 transition-transform hover:shadow-2xl">
+                    Download Free
+                </button>
+<button class="flex min-w-[180px] cursor-pointer items-center justify-center rounded-full h-14 px-8 bg-white dark:bg-white/10 border border-sage/30 dark:border-white/20 text-[#121811] dark:text-white text-lg font-medium hover:bg-sage/10 transition-colors">
+                    Book a Call
+                </button>
+</div>
+</div>
+<div class="absolute inset-0 z-0 opacity-30 pointer-events-none" style="background-image: radial-gradient(#A8C5A3 1.5px, transparent 1.5px); background-size: 40px 40px;"></div>
+<div class="absolute -bottom-20 -left-20 w-96 h-96 bg-sage/20 rounded-full blur-3xl"></div>
+<div class="absolute top-20 -right-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+</section>
+<section class="border-y border-sage/20 bg-white dark:bg-[#132210] py-10 overflow-hidden">
+<p class="text-center text-xs font-bold text-sage-dark/70 uppercase tracking-[0.2em] mb-8 font-sans">Works everywhere you work</p>
+<div class="flex justify-center gap-16 px-4 flex-wrap opacity-60 grayscale hover:grayscale-0 transition-all duration-700">
+<div class="flex items-center gap-2 text-xl font-bold font-sans tracking-tight hover:text-[#007ACC] transition-colors"><span class="material-symbols-outlined">terminal</span> VS Code</div>
+<div class="flex items-center gap-2 text-xl font-bold font-sans tracking-tight hover:text-[#4A154B] transition-colors"><span class="material-symbols-outlined">chat</span> Slack</div>
+<div class="flex items-center gap-2 text-xl font-bold font-sans tracking-tight hover:text-[#000000] transition-colors"><span class="material-symbols-outlined">article</span> Notion</div>
+<div class="flex items-center gap-2 text-xl font-bold font-sans tracking-tight hover:text-[#EA4335] transition-colors"><span class="material-symbols-outlined">mail</span> Gmail</div>
+<div class="flex items-center gap-2 text-xl font-bold font-sans tracking-tight hover:text-[#10A37F] transition-colors"><span class="material-symbols-outlined">smart_toy</span> ChatGPT</div>
+</div>
+</section>
+<section class="py-24 px-4 flex justify-center bg-background-light dark:bg-background-dark">
+<div class="max-w-[1024px] w-full flex flex-col gap-16">
+<div class="text-center max-w-[760px] mx-auto flex flex-col gap-6">
+<h2 class="text-4xl md:text-6xl font-serif font-medium leading-tight text-[#121811] dark:text-white">
+                    The <span class="italic text-sage-dark dark:text-primary font-bold">Typing Trap</span> vs. Voice Power
+                </h2>
+<p class="text-lg text-gray-600 dark:text-gray-400 font-sans leading-relaxed">
+                    Typing leads to lazy, short prompts. Voice allows for rich, structured instructions that AI models actually understand better.
+                </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="flex flex-col gap-6 p-8 rounded-2xl bg-white dark:bg-white/5 border border-sage/20 shadow-lg shadow-sage/5 hover:shadow-xl hover:shadow-sage/10 transition-all hover:-translate-y-1">
+<div class="size-14 rounded-full bg-cream dark:bg-white/10 flex items-center justify-center text-[#121811] dark:text-primary shadow-inner">
+<span class="material-symbols-outlined text-3xl">mic</span>
+</div>
+<div>
+<h3 class="text-2xl font-serif italic font-bold mb-3 text-sage-dark dark:text-primary">Rich Context</h3>
+<p class="text-base text-gray-600 dark:text-gray-400 leading-relaxed">Provide the backstory and nuance your AI needs without the friction of typing it out.</p>
+</div>
+</div>
+<div class="flex flex-col gap-6 p-8 rounded-2xl bg-white dark:bg-white/5 border border-sage/20 shadow-lg shadow-sage/5 hover:shadow-xl hover:shadow-sage/10 transition-all hover:-translate-y-1">
+<div class="size-14 rounded-full bg-cream dark:bg-white/10 flex items-center justify-center text-[#121811] dark:text-primary shadow-inner">
+<span class="material-symbols-outlined text-3xl">view_quilt</span>
+</div>
+<div>
+<h3 class="text-2xl font-serif italic font-bold mb-3 text-sage-dark dark:text-primary">Structured Output</h3>
+<p class="text-base text-gray-600 dark:text-gray-400 leading-relaxed">Dictate formatting, code blocks, and lists effortlessly. "Make this a bullet list."</p>
+</div>
+</div>
+<div class="flex flex-col gap-6 p-8 rounded-2xl bg-white dark:bg-white/5 border border-sage/20 shadow-lg shadow-sage/5 hover:shadow-xl hover:shadow-sage/10 transition-all hover:-translate-y-1">
+<div class="size-14 rounded-full bg-cream dark:bg-white/10 flex items-center justify-center text-[#121811] dark:text-primary shadow-inner">
+<span class="material-symbols-outlined text-3xl">bolt</span>
+</div>
+<div>
+<h3 class="text-2xl font-serif italic font-bold mb-3 text-sage-dark dark:text-primary">Zero Friction</h3>
+<p class="text-base text-gray-600 dark:text-gray-400 leading-relaxed">Eliminate the barrier between thought and prompt. Speak at the speed of thought.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="py-12 px-4 flex justify-center bg-white dark:bg-[#132210]">
+<div class="max-w-[1024px] w-full">
+<div class="relative w-full aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl group cursor-pointer border-4 border-cream dark:border-white/10" data-alt="Abstract digital waves representing voice data" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCfQTEBq8BAQGDgUXIcc_sa14qsEy1fz2o5OE_HEZDA4hcGGaZfo5yU5QmQ5KUSL7htVq0Zzvk98m7C3H76u_nrrX3Z8PU7mxm7DCV0-QZkFfEwdfhCCxb_PfEfZ0x3LoQUT3n-b82EdVZduAykApMSVbDGY2m1wcM5_9-sQMdZl_3IPDF-jnRe11KZbhTENwVUZuNV47prxkigzcnd8p4LX4-pHHHySDS7CJcexLEnQqCJaGXtOLKhwrBIBrixB8a3Hc-4JZaYDO8'); background-size: cover; background-position: center;">
+<div class="absolute inset-0 bg-sage-dark/20 mix-blend-overlay"></div>
+<div class="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/20 transition-colors">
+<button class="size-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/50 hover:scale-110 transition-transform shadow-lg">
+<span class="material-symbols-outlined" style="font-size: 48px; margin-left: 6px;">play_arrow</span>
+</button>
+</div>
+</div>
+<p class="text-center mt-6 text-sm font-bold uppercase tracking-widest text-sage-dark dark:text-gray-400">Watch Eloquio in action (1:45)</p>
+</div>
+</section>
+<section class="py-24 px-4 bg-[#121811] text-white overflow-hidden relative">
+<div class="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+<div class="max-w-[1024px] mx-auto flex flex-col md:flex-row items-center gap-16 relative z-10">
+<div class="flex-1 flex flex-col gap-8">
+<div class="inline-flex items-center gap-2 text-primary font-bold tracking-[0.2em] uppercase text-xs border border-primary/30 rounded-full px-3 py-1 bg-primary/10 w-fit">
+<span class="material-symbols-outlined text-sm">security</span> Security First
+                </div>
+<h2 class="text-4xl md:text-6xl font-serif leading-none">
+                    Your Data stays Yours.<br/>
+<span class="italic text-primary font-bold">Period.</span>
+</h2>
+<p class="text-xl text-gray-400 leading-relaxed font-sans font-light">
+                    We understand enterprise needs. That's why Eloquio offers <strong class="text-white">100% local processing</strong> options and supports Bring Your Own Key (BYOK) for OpenAI and Anthropic models.
+                </p>
+<ul class="flex flex-col gap-4 mt-4">
+<li class="flex items-center gap-4 group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">check_circle</span>
+<span class="font-medium text-lg">SOC2 Compliant Architecture</span>
+</li>
+<li class="flex items-center gap-4 group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">check_circle</span>
+<span class="font-medium text-lg">Zero Data Retention Policy</span>
+</li>
+<li class="flex items-center gap-4 group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">check_circle</span>
+<span class="font-medium text-lg">On-Premise Deployment Available</span>
+</li>
+</ul>
+</div>
+<div class="flex-1 w-full flex justify-center">
+<div class="relative bg-white/5 border border-white/10 p-10 rounded-3xl w-full max-w-sm backdrop-blur-md shadow-2xl">
+<div class="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+<span class="font-serif italic text-xl">API Configuration</span>
+<span class="text-[10px] tracking-wider uppercase font-bold bg-primary/20 text-primary px-2 py-1 rounded">Secure</span>
+</div>
+<div class="space-y-6">
+<div>
+<label class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2 block">Provider</label>
+<div class="h-12 bg-black/40 rounded-lg border border-white/10 flex items-center px-4 text-sm text-white">OpenAI (GPT-4)</div>
+</div>
+<div>
+<label class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2 block">API Key</label>
+<div class="h-12 bg-black/40 rounded-lg border border-white/10 flex items-center px-4 text-sm font-mono text-gray-500 tracking-widest">sk-••••••••••••••••••••••••</div>
+</div>
+<div class="flex items-center gap-3 mt-6 pt-2 border-t border-white/5">
+<div class="w-10 h-6 bg-primary rounded-full relative shadow-inner shadow-black/20">
+<div class="absolute right-1 top-1 size-4 bg-white rounded-full shadow-sm"></div>
+</div>
+<span class="text-sm font-medium text-primary">Local Processing Enabled</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="py-24 px-4 bg-cream dark:bg-[#1c2e18]">
+<div class="max-w-[1024px] mx-auto flex flex-col gap-24">
+<div class="flex flex-col md:flex-row-reverse items-center gap-16">
+<div class="flex-1">
+<h2 class="text-4xl md:text-5xl font-serif font-black mb-6 leading-tight">
+<span class="italic text-sage-dark dark:text-primary">4x Faster.</span><br/>
+                        Zero Fluff.
+                    </h2>
+<p class="mb-8 text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+                        Our AI pipeline doesn't just transcribe; it refines. Speak naturally and let Eloquio clean up the mess instantly.
+                    </p>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+<div class="flex items-center gap-4 bg-white dark:bg-white/5 p-4 rounded-xl shadow-sm border border-sage/10">
+<span class="material-symbols-outlined text-sage-dark dark:text-primary">graphic_eq</span>
+<span class="text-base font-bold text-gray-800 dark:text-white">Removes "Ums"</span>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-white/5 p-4 rounded-xl shadow-sm border border-sage/10">
+<span class="material-symbols-outlined text-sage-dark dark:text-primary">format_align_left</span>
+<span class="text-base font-bold text-gray-800 dark:text-white">Auto-Indentation</span>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-white/5 p-4 rounded-xl shadow-sm border border-sage/10">
+<span class="material-symbols-outlined text-sage-dark dark:text-primary">spellcheck</span>
+<span class="text-base font-bold text-gray-800 dark:text-white">Smart Fixes</span>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-white/5 p-4 rounded-xl shadow-sm border border-sage/10">
+<span class="material-symbols-outlined text-sage-dark dark:text-primary">speed</span>
+<span class="text-base font-bold text-gray-800 dark:text-white">Real-time Latency</span>
+</div>
+</div>
+</div>
+<div class="flex-1 w-full bg-white dark:bg-black/20 p-8 rounded-3xl border border-sage/20 shadow-2xl relative">
+<div class="space-y-8 relative z-10">
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
+<span>Typing Speed</span>
+<span>40 WPM</span>
+</div>
+<div class="h-6 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden border border-gray-200 dark:border-white/5">
+<div class="h-full bg-gray-300 w-[20%] rounded-r-full"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold uppercase tracking-widest text-sage-dark dark:text-primary">
+<span>Eloquio Voice</span>
+<span class="font-serif italic text-lg capitalize">160 WPM</span>
+</div>
+<div class="h-6 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden border border-sage/20">
+<div class="h-full bg-gradient-to-r from-sage to-sage-dark dark:from-primary/60 dark:to-primary w-[80%] rounded-r-full relative overflow-hidden">
+<div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col md:flex-row items-center gap-16">
+<div class="flex-1">
+<h2 class="text-4xl md:text-5xl font-serif font-black mb-6 leading-tight">Smart <span class="italic text-sage-dark dark:text-primary">Dictionary</span></h2>
+<p class="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+                        Map specific phrases to complex data. Say "Send email to John" and let Eloquio know exactly which John and what address.
+                    </p>
+</div>
+<div class="flex-1 w-full bg-white dark:bg-black/20 p-8 rounded-3xl border border-sage/20 shadow-2xl relative overflow-hidden group">
+<div class="absolute -top-10 -right-10 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
+<span class="material-symbols-outlined text-9xl">dictionary</span>
+</div>
+<div class="flex flex-col gap-6 relative z-10">
+<div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-dashed border-gray-300 dark:border-white/10">
+<span class="material-symbols-outlined text-gray-400">mic</span>
+<span class="font-serif italic text-xl text-gray-600 dark:text-gray-300">"Email John the report."</span>
+</div>
+<div class="flex justify-center">
+<span class="material-symbols-outlined text-sage-dark dark:text-primary animate-bounce">arrow_downward</span>
+</div>
+<div class="flex flex-col gap-3 p-5 bg-sage/10 dark:bg-primary/10 rounded-xl border border-sage/30 dark:border-primary/30 shadow-sm">
+<div class="text-[10px] font-bold text-sage-dark dark:text-primary uppercase tracking-widest mb-1">Output</div>
+<div class="font-mono text-sm leading-relaxed">
+<span class="text-blue-600 dark:text-blue-400 font-semibold">mailto:</span>john.doe@enterprise.com<br/>
+<span class="text-purple-600 dark:text-purple-400 font-semibold">subject:</span> Q3 Report
+                            </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="py-24 px-4 bg-white dark:bg-background-dark">
+<div class="max-w-[1024px] mx-auto text-center">
+<h2 class="text-4xl md:text-5xl font-serif font-medium mb-16">Contextual Tone <span class="font-bold italic text-sage-dark dark:text-primary">Switching</span></h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+<div class="flex flex-col items-center gap-6 group">
+<div class="size-24 bg-[#5469d4]/5 border border-[#5469d4]/20 rounded-full flex items-center justify-center text-[#5469d4] group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-[#5469d4]/10">
+<span class="material-symbols-outlined text-5xl">group</span>
+</div>
+<div>
+<h3 class="text-2xl font-serif font-bold mb-3">For Teams</h3>
+<p class="text-base text-gray-500 max-w-xs mx-auto">Professional, concise, bulleted updates for Slack or Teams.</p>
+</div>
+</div>
+<div class="flex flex-col items-center gap-6 group">
+<div class="size-24 bg-[#EA4335]/5 border border-[#EA4335]/20 rounded-full flex items-center justify-center text-[#EA4335] group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-[#EA4335]/10">
+<span class="material-symbols-outlined text-5xl">mail</span>
+</div>
+<div>
+<h3 class="text-2xl font-serif font-bold mb-3">For Email</h3>
+<p class="text-base text-gray-500 max-w-xs mx-auto">Formal, structured, and polite with proper greetings.</p>
+</div>
+</div>
+<div class="flex flex-col items-center gap-6 group">
+<div class="size-24 bg-sage/20 border border-sage-dark/30 rounded-full flex items-center justify-center text-sage-dark dark:text-primary group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-sage/20">
+<span class="material-symbols-outlined text-5xl">chat_bubble</span>
+</div>
+<div>
+<h3 class="text-2xl font-serif font-bold mb-3">For Personal</h3>
+<p class="text-base text-gray-500 max-w-xs mx-auto">Casual, quick, and expressive for texts or notes.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="py-24 px-4 bg-background-light dark:bg-[#132210] border-t border-sage/10">
+<div class="max-w-[1024px] mx-auto flex flex-col gap-24">
+<div>
+<h2 class="text-4xl md:text-5xl font-serif font-black text-center mb-16">Simple <span class="italic font-light text-sage-dark dark:text-primary">Pricing</span></h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-[860px] mx-auto">
+<div class="bg-white dark:bg-white/5 p-10 rounded-3xl shadow-sm border border-gray-100 dark:border-white/5 flex flex-col gap-8 hover:shadow-lg transition-shadow">
+<div>
+<h3 class="text-2xl font-serif font-bold text-gray-800 dark:text-white">Basic</h3>
+<div class="text-5xl font-black mt-3 text-sage-dark dark:text-gray-200">Free</div>
+<p class="text-base text-gray-500 mt-3 font-medium">Perfect for individuals starting out.</p>
+</div>
+<ul class="flex flex-col gap-4 flex-1">
+<li class="flex items-center gap-3 text-base"><span class="material-symbols-outlined text-sage-dark text-lg">check_circle</span> 30 mins dictation/day</li>
+<li class="flex items-center gap-3 text-base"><span class="material-symbols-outlined text-sage-dark text-lg">check_circle</span> Standard Cleanup</li>
+<li class="flex items-center gap-3 text-base"><span class="material-symbols-outlined text-sage-dark text-lg">check_circle</span> 1 Device</li>
+</ul>
+<button class="w-full py-4 rounded-xl font-bold border-2 border-sage/20 text-sage-dark dark:text-white dark:border-white/20 hover:bg-sage/10 dark:hover:bg-white/5 transition-colors uppercase tracking-wider text-sm">Get Started</button>
+</div>
+<div class="bg-[#121811] text-white p-10 rounded-3xl shadow-2xl flex flex-col gap-8 relative overflow-hidden transform md:-translate-y-4">
+<div class="absolute top-0 right-0 bg-primary text-[#121811] text-[10px] uppercase tracking-widest font-bold px-4 py-2 rounded-bl-xl z-10">POPULAR</div>
+<div class="absolute -bottom-20 -right-20 size-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="relative z-10">
+<h3 class="text-2xl font-serif font-bold text-primary italic">Pro</h3>
+<div class="text-5xl font-black mt-3">$19<span class="text-xl font-normal text-gray-400">/mo</span></div>
+<p class="text-base text-gray-400 mt-3 font-medium">For power users and prompt engineers.</p>
+</div>
+<ul class="flex flex-col gap-4 flex-1 relative z-10">
+<li class="flex items-center gap-3 text-base"><span class="material-symbols-outlined text-primary text-lg">check_circle</span> Unlimited Dictation</li>
+<li class="flex items-center gap-3 text-base"><span class="material-symbols-outlined text-primary text-lg">check_circle</span> Custom Dictionary</li>
+<li class="flex items-center gap-3 text-base"><span class="material-symbols-outlined text-primary text-lg">check_circle</span> 4k Audio Quality</li>
+<li class="flex items-center gap-3 text-base"><span class="material-symbols-outlined text-primary text-lg">check_circle</span> Enterprise Security</li>
+</ul>
+<button class="w-full py-4 rounded-xl font-bold bg-primary text-[#121811] hover:bg-[#2ed60f] transition-all shadow-lg shadow-primary/20 uppercase tracking-wider text-sm relative z-10">Start Free Trial</button>
+</div>
+</div>
+</div>
+<div class="bg-cream dark:bg-white/5 rounded-3xl p-10 md:p-16 text-center relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-sage/50 to-transparent"></div>
+<div class="flex justify-center mb-8">
+<div class="flex gap-1 text-orange-400">
+<span class="material-symbols-outlined fill-current text-2xl">star</span>
+<span class="material-symbols-outlined fill-current text-2xl">star</span>
+<span class="material-symbols-outlined fill-current text-2xl">star</span>
+<span class="material-symbols-outlined fill-current text-2xl">star</span>
+<span class="material-symbols-outlined fill-current text-2xl">star</span>
+</div>
+</div>
+<blockquote class="text-2xl md:text-4xl font-serif font-medium leading-relaxed mb-10 text-[#121811] dark:text-white">
+                    "I used to spend hours refining prompts in ChatGPT. With Eloquio, I just ramble my intent for 30 seconds, and it generates the <span class="italic text-sage-dark dark:text-primary font-bold decoration-slice">perfect structured prompt</span> instantly. It's magic."
+                </blockquote>
+<div class="flex items-center justify-center gap-5">
+<div class="size-16 bg-gray-300 rounded-full bg-cover bg-center border-2 border-white dark:border-white/20 shadow-md" data-alt="Portrait of Alex Chen" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCeWpMlhtYjitSfLGIxQq3Q_A7IN4WCzGSDwBa_Yyahe_q9kKiaF8lb7t3tE3pFU6VphI3nH1vPLdMa5YBkP4rrYkbQZLIrohHUoMEaV5GzJ85wPMa4HTEj1wrS4h1nPz2S5mJcCkOoqcL_vtL9h5RyvqLK6hA1FY5iimmHPsbOa6rWLR7COq1U-LuVRgkgcB3fmiJkgWRYW_djLdm6YFzNnL9boox4TqObkyM9PRAn_uEnZkoJIrmrfDO4_jEu3bpMp5MPXREu63Q')"></div>
+<div class="text-left">
+<div class="font-bold text-lg font-serif">Alex Chen</div>
+<div class="text-sm font-medium text-sage-dark dark:text-primary tracking-wide uppercase">Senior Product Manager @ TechFlow</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="py-32 px-4 bg-white dark:bg-background-dark flex flex-col items-center text-center relative overflow-hidden">
+<div class="absolute inset-0 z-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#A8C5A3 1px, transparent 1px); background-size: 24px 24px;"></div>
+<h2 class="text-5xl md:text-7xl font-black mb-8 max-w-3xl leading-tight font-serif z-10">
+            Ready to speak <br/><span class="italic text-sage-dark dark:text-primary">your mind?</span>
+</h2>
+<p class="text-xl text-gray-500 mb-10 max-w-xl font-light z-10">Join 10,000+ engineers and writers who have switched from typing to prompting.</p>
+<button class="flex min-w-[240px] cursor-pointer items-center justify-center rounded-full h-16 px-10 bg-primary text-[#121811] text-lg font-bold shadow-2xl shadow-primary/40 hover:shadow-primary/60 transition-all hover:-translate-y-1 z-10">
+            Download for Mac &amp; Windows
+        </button>
+<p class="mt-6 text-sm font-medium text-gray-400 z-10">Free forever for personal use. No credit card required.</p>
+</section>
+<footer class="bg-background-light dark:bg-[#0a1209] py-16 px-10 border-t border-black/5 dark:border-white/5">
+<div class="max-w-[1024px] mx-auto flex flex-col md:flex-row justify-between gap-12">
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-3">
+<div class="size-8 text-primary flex items-center justify-center rounded bg-black">
+<span class="material-symbols-outlined text-primary" style="font-size: 20px;">graphic_eq</span>
+</div>
+<h2 class="text-xl font-serif font-bold italic text-sage-dark dark:text-primary">Eloquio</h2>
+</div>
+<p class="text-sm text-gray-500 max-w-xs leading-relaxed">The world's first AI voice dictation tool built specifically for prompt engineering.</p>
+</div>
+<div class="flex gap-20 flex-wrap">
+<div class="flex flex-col gap-4">
+<h4 class="font-serif font-bold text-base">Product</h4>
+<a class="text-sm text-gray-500 hover:text-sage-dark transition-colors" href="#">Download</a>
+<a class="text-sm text-gray-500 hover:text-sage-dark transition-colors" href="#">Changelog</a>
+<a class="text-sm text-gray-500 hover:text-sage-dark transition-colors" href="#">Integrations</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-serif font-bold text-base">Company</h4>
+<a class="text-sm text-gray-500 hover:text-sage-dark transition-colors" href="#">About</a>
+<a class="text-sm text-gray-500 hover:text-sage-dark transition-colors" href="#">Blog</a>
+<a class="text-sm text-gray-500 hover:text-sage-dark transition-colors" href="#">Careers</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-serif font-bold text-base">Legal</h4>
+<a class="text-sm text-gray-500 hover:text-sage-dark transition-colors" href="#">Privacy</a>
+<a class="text-sm text-gray-500 hover:text-sage-dark transition-colors" href="#">Terms</a>
+</div>
+</div>
+</div>
+<div class="max-w-[1024px] mx-auto mt-16 pt-8 border-t border-black/5 dark:border-white/5 text-center md:text-left text-xs font-medium text-gray-400">
+            © 2023 Eloquio Inc. All rights reserved.
+        </div>
+</footer>
+</div>
+
+</body></html>

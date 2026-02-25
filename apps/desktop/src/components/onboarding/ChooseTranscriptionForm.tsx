@@ -2,6 +2,7 @@ import { ArrowForward } from "@mui/icons-material";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import { FormattedMessage } from "react-intl";
 import { goToOnboardingPage } from "../../actions/onboarding.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { useAppStore } from "../../store";
 import { trackButtonClick } from "../../utils/analytics.utils";
 import { AITranscriptionConfiguration } from "../settings/AITranscriptionConfiguration";
@@ -43,7 +44,10 @@ export const ChooseTranscriptionForm = () => {
             <FormattedMessage defaultMessage="Set up transcription" />
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            <FormattedMessage defaultMessage="Decide how Voquill should process your recordings. Locally or through an API." />
+            <FormattedMessage
+              defaultMessage="Decide how {appName} should process your recordings. Locally or through an API."
+              values={{ appName: ELOQUIO_CONFIG.appName }}
+            />
           </Typography>
         </Box>
 

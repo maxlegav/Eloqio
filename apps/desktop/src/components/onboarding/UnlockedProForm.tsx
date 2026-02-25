@@ -9,6 +9,7 @@ import { Box, Button, Chip, Stack, Typography } from "@mui/material";
 import { motion } from "framer-motion";
 import { FormattedMessage } from "react-intl";
 import { goToOnboardingPage } from "../../actions/onboarding.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { setAllModesToCloud } from "../../actions/user.actions";
 import { trackButtonClick } from "../../utils/analytics.utils";
 import { Logo } from "../common/Logo";
@@ -171,7 +172,7 @@ export const UnlockedProForm = () => {
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.4, duration: 0.4 }}
       >
-        Voquill
+        {ELOQUIO_CONFIG.appName}
       </MotionTypography>
       <MotionChip
         label="Pro"

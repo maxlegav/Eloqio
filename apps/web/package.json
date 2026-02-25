@@ -1,6 +1,7 @@
 {
-  "name": "web",
+  "name": "eloquio-web",
   "version": "0.1.0",
+  "description": "Enterprise voice-to-text. 100% local.",
   "private": true,
   "type": "module",
   "scripts": {

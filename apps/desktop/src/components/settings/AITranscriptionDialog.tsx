@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { FormattedMessage } from "react-intl";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { produceAppState, useAppStore } from "../../store";
 import { AITranscriptionConfiguration } from "./AITranscriptionConfiguration";
 
@@ -38,7 +39,10 @@ export const AITranscriptionDialog = () => {
       <DialogContent dividers>
         <Stack spacing={3} alignItems="flex-start">
           <Typography variant="body1" color="text.secondary">
-            <FormattedMessage defaultMessage="Decide how Voquill should transcribe your recordings—locally on your machine or through a connected provider." />
+            <FormattedMessage
+              defaultMessage="Decide how {appName} should transcribe your recordings—locally on your machine or through a connected provider."
+              values={{ appName: ELOQUIO_CONFIG.appName }}
+            />
           </Typography>
           <AITranscriptionConfiguration />
         </Stack>

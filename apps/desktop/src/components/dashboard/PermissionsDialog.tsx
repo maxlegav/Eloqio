@@ -19,6 +19,7 @@ import {
 import { relaunch } from "@tauri-apps/plugin-process";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { produceAppState, useAppStore } from "../../store";
 import type { PermissionKind } from "../../types/permission.types";
 import {
@@ -40,10 +41,13 @@ const getPurposeDescription = (
   intl: ReturnType<typeof useIntl>,
 ): string => {
   const descriptions: Record<PermissionKind, string> = {
-    microphone: intl.formatMessage({
-      defaultMessage:
-        "Allows Voquill to capture audio from your microphone for transcription.",
-    }),
+    microphone: intl.formatMessage(
+      {
+        defaultMessage:
+          "Allows {appName} to capture audio from your microphone for transcription.",
+      },
+      { appName: ELOQUIO_CONFIG.appName },
+    ),
     accessibility: intl.formatMessage({
       defaultMessage:
         "Lets you trigger dictation hotkeys while using other applications.",
@@ -246,7 +250,10 @@ export const PermissionsDialog = () => {
       <DialogContent>
         <Stack spacing={3}>
           <Typography variant="body1">
-            <FormattedMessage defaultMessage="Voquill is an AI dictation tool. It needs microphone and accessibility access in order to function properly." />
+            <FormattedMessage
+              defaultMessage="{appName} is an AI dictation tool. It needs microphone and accessibility access in order to function properly."
+              values={{ appName: ELOQUIO_CONFIG.appName }}
+            />
           </Typography>
           <Stack>
             {REQUIRED_PERMISSIONS.map((kind) => (

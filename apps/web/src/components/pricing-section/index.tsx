@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { trackButtonClick } from "../../utils/analytics.utils";
 import pageStyles from "../../styles/page.module.css";
@@ -10,65 +9,43 @@ type Feature = string | { text: string; deemphasized?: boolean };
 type PricingPlan = {
   name: string;
   description: string;
-  monthlyPrice: number | null;
-  yearlyPrice: number | null;
+  price: string;
+  priceNote: string;
   features: Feature[];
-  cta: string;
+  cta: "download" | "contact";
   popular: boolean;
-  isEnterprise?: boolean;
-  isLifetime?: boolean;
 };
 
 const pricingPlans: PricingPlan[] = [
   {
     name: "Personal",
-    description: "For individuals who want fast, local dictation.",
-    monthlyPrice: 0,
-    yearlyPrice: null,
+    description: "Free forever for individuals.",
+    price: "Free",
+    priceNote: "No credit card required",
     features: [
-      "AI dictation",
-      "Bring your own API key",
-      "Offline mode",
-      "Smart autocorrect",
-      "Community support",
-      { text: "Basic agent mode", deemphasized: true },
+      "Local transcription",
+      "All languages supported",
+      "Unlimited use",
+      "Smart text cleanup",
+      "Works offline",
     ],
-    cta: "Download free",
+    cta: "download",
     popular: false,
-    isLifetime: true,
-  },
-  {
-    name: "Pro",
-    description: "Full power with cloud transcription and advanced integrations.",
-    monthlyPrice: 12,
-    yearlyPrice: 8,
-    features: [
-      { text: "Everything in Personal", deemphasized: true },
-      "AI dictation",
-      // "Advanced agent mode",
-      "Cross-device sync",
-      "Unlimited words per month",
-      "Priority support",
-    ],
-    cta: "Download free",
-    popular: true,
   },
   {
     name: "Enterprise",
-    description: "Custom solutions for teams with advanced needs.",
-    monthlyPrice: null,
-    yearlyPrice: null,
+    description: "For teams with advanced needs.",
+    price: "Contact Us",
+    priceNote: "Custom pricing",
     features: [
-      { text: "Everything in Pro", deemphasized: true },
-      "On-premise deployment",
-      "Custom integrations",
-      "Data privacy & compliance",
-      "Dedicated support",
-      "Bring your own cloud",
+      { text: "Everything in Personal", deemphasized: true },
+      "Priority support",
+      "Team deployment",
+      "Custom integration",
+      "Volume licensing",
     ],
-    cta: "Contact us",
-    popular: false,
-    isEnterprise: true,
+    cta: "contact",
+    popular: true,
   },
 ];
 
@@ -109,23 +86,9 @@ function ShieldIcon({ className }: { className?: string }) {
 }
 
 export default function PricingSection() {
-  const [isYearly, setIsYearly] = useState(true);
-
-  const getPrice = (plan: PricingPlan): number | null => {
-    if (plan.isEnterprise) return null;
-    if (plan.isLifetime) return plan.monthlyPrice;
-    return isYearly ? plan.yearlyPrice : plan.monthlyPrice;
-  };
-
-  const getYearlyTotal = (plan: PricingPlan): number | null => {
-    if (!plan.yearlyPrice) return null;
-    return plan.yearlyPrice * 12;
-  };
-
   return (
     <section className={styles.section} id="pricing">
       <div className={styles.content}>
-        {/* Header */}
         <div className={styles.header}>
           <span className={pageStyles.badge}>
             <FormattedMessage defaultMessage="Pricing" />
@@ -134,121 +97,50 @@ export default function PricingSection() {
             <FormattedMessage defaultMessage="Simple, transparent pricing" />
           </h2>
           <p>
-            <FormattedMessage defaultMessage="Choose the plan that works for you. No hidden fees." />
+            <FormattedMessage defaultMessage="Free for personal use. Enterprise options for teams." />
           </p>
         </div>
 
-        {/* Billing Toggle */}
-        <div className={styles.billingToggle}>
-          <span
-            className={`${styles.billingLabel} ${!isYearly ? styles.active : ""}`}
-          >
-            <FormattedMessage defaultMessage="Monthly" />
-          </span>
-          <button
-            className={styles.toggleButton}
-            onClick={() => setIsYearly(!isYearly)}
-            aria-label="Toggle billing period"
-          >
-            <span
-              className={`${styles.toggleKnob} ${isYearly ? styles.active : ""}`}
-            />
-          </button>
-          <span
-            className={`${styles.billingLabel} ${isYearly ? styles.active : ""}`}
-          >
-            <FormattedMessage defaultMessage="Yearly" />
-          </span>
-          <span className={styles.saveBadge}>
-            <FormattedMessage defaultMessage="Save 33%" />
-          </span>
-        </div>
-
-        {/* Pricing Cards */}
         <div className={styles.cardsGrid}>
           {pricingPlans.map((plan) => (
             <div
               key={plan.name}
               className={`${styles.card} ${plan.popular ? styles.popular : ""}`}
             >
-              {/* Popular Badge */}
               {plan.popular && (
                 <span className={styles.popularBadge}>
-                  <FormattedMessage defaultMessage="Best value" />
+                  <FormattedMessage defaultMessage="Enterprise" />
                 </span>
               )}
 
-              {/* Card Header */}
               <div className={styles.cardHeader}>
                 <h3 className={styles.planName}>{plan.name}</h3>
                 <p className={styles.planDescription}>{plan.description}</p>
               </div>
 
-              {/* Price */}
               <div className={styles.priceContainer}>
-                {getPrice(plan) !== null ? (
-                  getPrice(plan) === 0 ? (
-                    <>
-                      <span className={styles.price}>
-                        <FormattedMessage defaultMessage="Free" />
-                      </span>
-                      <div className={styles.billingNote}>
-                        <FormattedMessage defaultMessage="No credit card required" />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className={styles.priceRow}>
-                        <span className={styles.price}>${getPrice(plan)}</span>
-                        <span className={styles.pricePeriod}>
-                          <FormattedMessage defaultMessage="/ month" />
-                        </span>
-                      </div>
-                      <div className={styles.billingNote}>
-                        {isYearly && plan.yearlyPrice !== null && plan.yearlyPrice > 0 ? (
-                          <FormattedMessage
-                            defaultMessage="Billed annually (${total}/year)"
-                            values={{ total: getYearlyTotal(plan) }}
-                          />
-                        ) : (
-                          <FormattedMessage defaultMessage="Billed monthly" />
-                        )}
-                      </div>
-                    </>
-                  )
-                ) : (
-                  <>
-                    <span className={styles.customPrice}>
-                      <FormattedMessage defaultMessage="Custom" />
-                    </span>
-                    <div className={styles.billingNote}>
-                      {isYearly ? (
-                        <FormattedMessage defaultMessage="Billed annually" />
-                      ) : (
-                        <FormattedMessage defaultMessage="Billed monthly" />
-                      )}
-                    </div>
-                  </>
-                )}
+                <span className={styles.price}>{plan.price}</span>
+                <div className={styles.billingNote}>{plan.priceNote}</div>
               </div>
 
-              {/* CTA Button */}
-              {plan.isEnterprise ? (
-                <a
-                  href="mailto:hello@voquill.com"
-                  className={styles.ctaButtonOutline}
-                  onClick={() => trackButtonClick(`pricing-${plan.name.toLowerCase()}`)}
-                >
-                  {plan.cta}
-                </a>
-              ) : (
+              {plan.cta === "download" ? (
                 <DownloadButton
-                  className={plan.popular ? styles.ctaButton : styles.ctaButtonOutline}
+                  className={styles.ctaButtonOutline}
                   trackingId={`pricing-${plan.name.toLowerCase()}`}
                 />
+              ) : (
+                <a
+                  href="https://cal.com/eloqio/presentation-eloqio"
+                  target="_blank"
+                  
+                  rel="noopener noreferrer"
+                  className={styles.ctaButton}
+                  onClick={() => trackButtonClick(`pricing-${plan.name.toLowerCase()}`)}
+                >
+                  <FormattedMessage defaultMessage="Book a Call" />
+                </a>
               )}
 
-              {/* Features */}
               <div className={styles.featuresSection}>
                 <p className={styles.featuresTitle}>
                   <FormattedMessage defaultMessage="What's included" />
@@ -273,15 +165,14 @@ export default function PricingSection() {
           ))}
         </div>
 
-        {/* Trust Signal */}
         <div className={styles.trustSignal}>
           <ShieldIcon className={styles.shieldIcon} />
           <span className={styles.trustText}>
             <strong>
-              <FormattedMessage defaultMessage="No hidden fees" />
+              <FormattedMessage defaultMessage="100% Local Processing" />
             </strong>
             {" · "}
-            <FormattedMessage defaultMessage="Cancel anytime" />
+            <FormattedMessage defaultMessage="Your data never leaves your device" />
           </span>
         </div>
       </div>

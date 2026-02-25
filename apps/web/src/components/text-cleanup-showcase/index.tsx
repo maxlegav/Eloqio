@@ -17,7 +17,7 @@ export default function TextCleanupShowcase() {
           <FormattedMessage defaultMessage="Auto-correct with AI" />
         </h2>
         <p>
-          <FormattedMessage defaultMessage="Voquill uses AI to clean up your transcripts. It removes filler words, hesitations, false starts, etc. Speak naturally, Voquill will handle the rest." />
+          <FormattedMessage defaultMessage="Eloquio uses AI to clean up your transcripts. It removes filler words, hesitations, false starts, etc. Speak naturally, Eloquio will handle the rest." />
         </p>
         <DownloadButton className={styles.inlineButton} />
       </div>

@@ -10,6 +10,7 @@ import {
 import { useEffect } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { tryOpenPaymentDialogForPricingPlan } from "../../actions/payment.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import {
   closeUpgradePlanDialog,
   selectUpgradePlan,
@@ -73,7 +74,10 @@ export const UpgradePlanDialog = () => {
               <FormattedMessage defaultMessage="Upgrade your plan" />
             </Typography>
             <Typography component="div" variant="body1" color="textSecondary">
-              <FormattedMessage defaultMessage="Cross-device sync, Voquill Cloud, and more advanced features." />
+              <FormattedMessage
+                defaultMessage="Cross-device sync, {appName} Cloud, and more advanced features."
+                values={{ appName: ELOQUIO_CONFIG.appName }}
+              />
             </Typography>
           </DialogTitle>
           <DialogContent>

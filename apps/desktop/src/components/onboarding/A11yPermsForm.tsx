@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { goToOnboardingPage } from "../../actions/onboarding.actions";
 import enableA11yVideo from "../../assets/enable-a11y.mp4";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { produceAppState, useAppStore } from "../../store";
 import { trackButtonClick } from "../../utils/analytics.utils";
 import {
@@ -65,7 +66,10 @@ export const A11yPermsForm = () => {
             <FormattedMessage defaultMessage="Enable accessibility" />
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            <FormattedMessage defaultMessage="Voquill needs accessibility permissions to paste transcriptions into focused text fields." />
+            <FormattedMessage
+              defaultMessage="{appName} needs accessibility permissions to paste transcriptions into focused text fields."
+              values={{ appName: ELOQUIO_CONFIG.appName }}
+            />
           </Typography>
         </Box>
 

@@ -1,5 +1,6 @@
 import { Typography } from "@mui/material";
 import { FormattedMessage } from "react-intl";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 
 type TermsNoticeProps = {
   align?: "left" | "center";
@@ -17,9 +18,12 @@ export const TermsNotice = ({ align = "center" }: TermsNoticeProps) => {
         fontSize: "0.75rem",
       }}
     >
-      <FormattedMessage defaultMessage="By using Voquill, you agree to our" />{" "}
+      <FormattedMessage
+        defaultMessage="By using {appName}, you agree to our"
+        values={{ appName: ELOQUIO_CONFIG.appName }}
+      />{" "}
       <a
-        href="https://voquill.com/terms"
+        href={`${ELOQUIO_CONFIG.website}/terms`}
         target="_blank"
         rel="noopener noreferrer"
         style={{ color: "inherit", textDecoration: "underline" }}
@@ -28,7 +32,7 @@ export const TermsNotice = ({ align = "center" }: TermsNoticeProps) => {
       </a>{" "}
       <FormattedMessage defaultMessage="and" />{" "}
       <a
-        href="https://voquill.com/privacy"
+        href={`${ELOQUIO_CONFIG.website}/privacy`}
         target="_blank"
         rel="noopener noreferrer"
         style={{ color: "inherit", textDecoration: "underline" }}

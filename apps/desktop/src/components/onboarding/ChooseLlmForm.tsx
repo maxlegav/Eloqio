@@ -2,6 +2,7 @@ import { ArrowForward } from "@mui/icons-material";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import { FormattedMessage } from "react-intl";
 import { goToOnboardingPage } from "../../actions/onboarding.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { useAppStore } from "../../store";
 import { trackButtonClick } from "../../utils/analytics.utils";
 import { AIPostProcessingConfiguration } from "../settings/AIPostProcessingConfiguration";
@@ -43,7 +44,10 @@ export const ChooseLlmForm = () => {
             <FormattedMessage defaultMessage="Set up post-processing" />
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            <FormattedMessage defaultMessage="Choose if Voquill should enhance transcripts automatically after they are transcribed." />
+            <FormattedMessage
+              defaultMessage="Choose if {appName} should enhance transcripts automatically after they are transcribed."
+              values={{ appName: ELOQUIO_CONFIG.appName }}
+            />
           </Typography>
         </Box>
 

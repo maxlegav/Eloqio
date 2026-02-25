@@ -14,7 +14,7 @@ export const ELOQUIO_CONFIG: EloquioConfig = {
   supportEmail: 'support@eloquio.com',
   companyName: 'Eloquio Team',
   description: 'Enterprise voice-to-text for confidential workflows',
-  bookingUrl: 'https://cal.com/eloquio/demo',
+  bookingUrl: 'https://cal.com/eloqio/presentation-eloqio',
 };
 
 export const getAppTitle = (suffix?: string): string => {

@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { goToOnboardingPage } from "../../actions/onboarding.actions";
 import enableMicVideo from "../../assets/enable-mic.mp4";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { produceAppState, useAppStore } from "../../store";
 import { trackButtonClick } from "../../utils/analytics.utils";
 import {
@@ -65,7 +66,10 @@ export const MicPermsForm = () => {
             <FormattedMessage defaultMessage="Set up your microphone" />
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            <FormattedMessage defaultMessage="Voquill only activates your microphone when you choose to start recording." />
+            <FormattedMessage
+              defaultMessage="{appName} only activates your microphone when you choose to start recording."
+              values={{ appName: ELOQUIO_CONFIG.appName }}
+            />
           </Typography>
         </Box>
 

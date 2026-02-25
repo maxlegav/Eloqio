@@ -1,11 +1,5 @@
-import { Link } from "react-router-dom";
 import { FormattedMessage, useIntl } from "react-intl";
 import DownloadButton from "../download-button";
-import {
-  PLATFORM_CONFIG,
-  PLATFORM_ORDER,
-  type Platform,
-} from "../../lib/downloads";
 import pageStyles from "../../styles/page.module.css";
 import styles from "./hero.module.css";
 import { HeroGraphic } from "./hero-graphic";
@@ -16,65 +10,45 @@ export function HeroSection() {
   return (
     <section className={styles.heroSection} id="overview">
       <div className={styles.heroContent}>
+        <span className={pageStyles.badge}>
+          <FormattedMessage defaultMessage="Enterprise Voice-to-Text" />
+        </span>
         <h1 className={styles.heroTitle}>
-          <FormattedMessage defaultMessage="Your keyboard is holding you back." />
+          <FormattedMessage defaultMessage="Your voice, your AI, your data." />
         </h1>
         <p className={styles.heroSubtitle}>
-          <FormattedMessage defaultMessage="Make voice your new keyboard. Type four times faster by using your voice. Voquill is the open-source alternative to WisprFlow." />
+          <FormattedMessage defaultMessage="Speak to AI 4x faster than typing. All processing happens on your device—we never see your data." />
         </p>
         <div className={styles.heroActions}>
           <DownloadButton trackingId="download-hero" />
           <a
-            href="https://github.com/josiahsrc/voquill"
+            href="https://cal.com/eloqio/presentation-eloqio"
             target="_blank"
             rel="noopener noreferrer"
             className={pageStyles.secondaryButton}
           >
-            <span className={styles.githubIcon} aria-hidden="true" />
-            <FormattedMessage defaultMessage="Open source" />
+            <FormattedMessage defaultMessage="Book a Demo" />
           </a>
         </div>
         <div className={styles.heroMeta}>
-          <p className={styles.heroNote}>
-            <FormattedMessage defaultMessage="Free to use. No credit card required." />
-          </p>
           <div
-            className={styles.heroPlatformList}
+            className={styles.trustIndicators}
             aria-label={intl.formatMessage({
-              defaultMessage: "Desktop downloads",
+              defaultMessage: "Trust indicators",
             })}
           >
-            {PLATFORM_ORDER.map((platformId: Platform) => {
-              const { Icon, name, id } = PLATFORM_CONFIG[platformId];
-              return (
-                <span
-                  key={id}
-                  className={styles.heroPlatformBadge}
-                  role="img"
-                  aria-label={name}
-                  title={name}
-                >
-                  <Icon className={styles.heroPlatformIcon} size={24} />
-                </span>
-              );
-            })}
+            <span className={styles.trustItem}>
+              <FormattedMessage defaultMessage="100% Local" />
+            </span>
+            <span className={styles.trustDivider}>|</span>
+            <span className={styles.trustItem}>
+              <FormattedMessage defaultMessage="No Account Required" />
+            </span>
+            <span className={styles.trustDivider}>|</span>
+            <span className={styles.trustItem}>
+              <FormattedMessage defaultMessage="macOS · Windows · Linux" />
+            </span>
           </div>
-          <Link to="/download" className={styles.heroMoreLink}>
-            <FormattedMessage defaultMessage="More download options" />
-          </Link>
-          <a
-            href="https://www.producthunt.com/products/voquill?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-voquill-2"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.productHuntBadge}
-          >
-            <img
-              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1061874&theme=dark"
-              alt="Voquill - The open source WisprFlow alternative | Product Hunt"
-              width="250"
-              height="54"
-            />
-          </a>
         </div>
       </div>
       <HeroGraphic />

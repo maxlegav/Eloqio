@@ -5,6 +5,7 @@ import {
   setPreferredPostProcessingApiKeyId,
   setPreferredPostProcessingMode,
 } from "../../actions/user.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { useAppStore } from "../../store";
 import { type PostProcessingMode } from "../../types/ai.types";
 import {
@@ -48,7 +49,7 @@ export const AIPostProcessingConfiguration = ({
             [
               {
                 value: "cloud",
-                label: "Voquill",
+                label: ELOQUIO_CONFIG.appName,
               },
             ],
           ),

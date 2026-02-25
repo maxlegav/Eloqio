@@ -19,6 +19,7 @@ import {
   dismissUpdateDialog,
   installAvailableUpdate,
 } from "../../actions/updater.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { useAppStore } from "../../store";
 import { formatSize } from "../../utils/format.utils";
 import { FormattedMessage, useIntl } from "react-intl";
@@ -62,13 +63,16 @@ export const UpdateDialog = () => {
   const versionLabel = availableVersion
     ? intl.formatMessage(
         {
-          defaultMessage: "Voquill {version}",
+          defaultMessage: "{appName} {version}",
         },
-        { version: availableVersion },
+        { appName: ELOQUIO_CONFIG.appName, version: availableVersion },
       )
-    : intl.formatMessage({
-        defaultMessage: "A Voquill update",
-      });
+    : intl.formatMessage(
+        {
+          defaultMessage: "A {appName} update",
+        },
+        { appName: ELOQUIO_CONFIG.appName },
+      );
 
   const formattedDate = useMemo(
     () => formatReleaseDate(releaseDate),
@@ -212,7 +216,10 @@ export const UpdateDialog = () => {
 
           {status === "installing" && (
             <Alert severity="info" variant="outlined">
-              <FormattedMessage defaultMessage="Installation in progress. Voquill may restart automatically when finished." />
+              <FormattedMessage
+                defaultMessage="Installation in progress. {appName} may restart automatically when finished."
+                values={{ appName: ELOQUIO_CONFIG.appName }}
+              />
             </Alert>
           )}
 

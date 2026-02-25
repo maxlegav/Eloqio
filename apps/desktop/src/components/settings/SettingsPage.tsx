@@ -36,6 +36,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { ChangeEvent, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { showErrorSnackbar } from "../../actions/app.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { setAutoLaunchEnabled } from "../../actions/settings.actions";
 import { loadTones } from "../../actions/tone.actions";
 import {
@@ -238,7 +239,10 @@ export default function SettingsPage() {
     <Section
       title={<FormattedMessage defaultMessage="Processing" />}
       description={
-        <FormattedMessage defaultMessage="How Voquill should manage your transcriptions." />
+        <FormattedMessage
+          defaultMessage="How {appName} should manage your transcriptions."
+          values={{ appName: ELOQUIO_CONFIG.appName }}
+        />
       }
     >
       <ListTile

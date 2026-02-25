@@ -16,6 +16,7 @@ import {
   submitOnboarding,
 } from "../../actions/onboarding.actions";
 import discordIcon from "../../assets/discord.svg";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { produceAppState, useAppStore } from "../../store";
 import { trackButtonClick } from "../../utils/analytics.utils";
 import {
@@ -203,7 +204,10 @@ ${userName}`;
             <FormattedMessage defaultMessage="Now try an email" />
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            <FormattedMessage defaultMessage="Dictate a short email. Voquill works great for longer-form content like messages, notes, and documents." />
+            <FormattedMessage
+              defaultMessage="Dictate a short email. {appName} works great for longer-form content like messages, notes, and documents."
+              values={{ appName: ELOQUIO_CONFIG.appName }}
+            />
           </Typography>
           <DictationInstruction />
         </Stack>

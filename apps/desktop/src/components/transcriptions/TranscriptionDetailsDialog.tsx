@@ -14,6 +14,7 @@ import { getRec } from "@repo/utilities";
 import { useCallback, useMemo, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { showErrorSnackbar } from "../../actions/app.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import {
   closeTranscriptionDetailsDialog,
   retranscribeTranscription,
@@ -156,7 +157,12 @@ export const TranscriptionDetailsDialog = () => {
       return <FormattedMessage defaultMessage="API" />;
     }
     if (transcription?.transcriptionMode === "cloud") {
-      return <FormattedMessage defaultMessage="Voquill Cloud" />;
+      return (
+        <FormattedMessage
+          defaultMessage="{appName} Cloud"
+          values={{ appName: ELOQUIO_CONFIG.appName }}
+        />
+      );
     }
     if (transcription?.transcriptionMode === "local") {
       return <FormattedMessage defaultMessage="Local" />;
@@ -180,7 +186,12 @@ export const TranscriptionDetailsDialog = () => {
       return <FormattedMessage defaultMessage="API" />;
     }
     if (transcription?.postProcessMode === "cloud") {
-      return <FormattedMessage defaultMessage="Voquill Cloud" />;
+      return (
+        <FormattedMessage
+          defaultMessage="{appName} Cloud"
+          values={{ appName: ELOQUIO_CONFIG.appName }}
+        />
+      );
     }
     return <FormattedMessage defaultMessage="Disabled" />;
   }, [transcription?.postProcessDevice, transcription?.postProcessMode]);

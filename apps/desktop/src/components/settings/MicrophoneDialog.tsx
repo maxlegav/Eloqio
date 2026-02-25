@@ -13,6 +13,7 @@ import { Nullable } from "@repo/types";
 import { useCallback, useEffect, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { setPreferredMicrophone } from "../../actions/user.actions";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { useMyPreferredMicrophone } from "../../hooks/user.hooks";
 import { produceAppState, useAppStore } from "../../store";
 import { SettingSection } from "../common/SettingSection";
@@ -86,7 +87,10 @@ export const MicrophoneDialog = () => {
             <SettingSection
               title={<FormattedMessage defaultMessage="Preferred microphone" />}
               description={
-                <FormattedMessage defaultMessage="Choose which microphone Voquill should use when recording. Automatic picks the best available device each time." />
+                <FormattedMessage
+                  defaultMessage="Choose which microphone {appName} should use when recording. Automatic picks the best available device each time."
+                  values={{ appName: ELOQUIO_CONFIG.appName }}
+                />
               }
               sx={{ pb: 0.5 }}
             />

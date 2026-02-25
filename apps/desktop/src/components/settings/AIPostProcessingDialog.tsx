@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { FormattedMessage } from "react-intl";
+import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { produceAppState, useAppStore } from "../../store";
 import { AIPostProcessingConfiguration } from "./AIPostProcessingConfiguration";
 
@@ -40,7 +41,10 @@ export const AIPostProcessingDialog = () => {
       <DialogContent dividers>
         <Stack spacing={3} alignItems="flex-start">
           <Typography variant="body1" color="text.secondary">
-            <FormattedMessage defaultMessage="Tell Voquill how to enhance your transcripts after they are created." />
+            <FormattedMessage
+              defaultMessage="Tell {appName} how to enhance your transcripts after they are created."
+              values={{ appName: ELOQUIO_CONFIG.appName }}
+            />
           </Typography>
 
           <AIPostProcessingConfiguration />

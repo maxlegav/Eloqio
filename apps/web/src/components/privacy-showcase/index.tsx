@@ -7,22 +7,31 @@ export default function PrivacyShowcase() {
     <section className={styles.splitSection} id="privacy">
       <div className={styles.splitContent}>
         <span className={styles.badge}>
-          <FormattedMessage defaultMessage="Private and secure" />
+          <FormattedMessage defaultMessage="100% Local Processing" />
         </span>
         <h2>
-          <FormattedMessage defaultMessage="Your data is yours. Period." />
+          <FormattedMessage defaultMessage="Your voice never leaves your device." />
         </h2>
         <p>
-          <FormattedMessage defaultMessage="Process everything locally on your device, bring your own API key, or connect to our cloud. Don't believe us? See for yourself. Voquill is fully open-source." />
+          <FormattedMessage defaultMessage="Eloquio processes everything locally using Whisper AI. No cloud. No data transmission. No risk." />
         </p>
-        <a
-          href="https://github.com/josiahsrc/voquill"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.inlineLink}
-        >
-          <FormattedMessage defaultMessage="GitHub Source Code →" />
-        </a>
+        <ul className={styles.bulletList}>
+          <li>
+            <strong><FormattedMessage defaultMessage="No internet required" /></strong>
+            {" — "}
+            <FormattedMessage defaultMessage="Works completely offline" />
+          </li>
+          <li>
+            <strong><FormattedMessage defaultMessage="GDPR/HIPAA friendly" /></strong>
+            {" — "}
+            <FormattedMessage defaultMessage="Data never leaves your control" />
+          </li>
+          <li>
+            <strong><FormattedMessage defaultMessage="Perfect for confidential work" /></strong>
+            {" — "}
+            <FormattedMessage defaultMessage="Legal, medical, financial protected" />
+          </li>
+        </ul>
       </div>
       <div className={`${styles.splitMedia} ${styles.privacyMedia}`}>
         <PrivacyLock />
