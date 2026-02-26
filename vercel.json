@@ -1,7 +1,7 @@
 {
   "buildCommand": "npx turbo run build:vercel --filter=eloquio-web",
   "outputDirectory": "apps/web/dist",
-  "installCommand": "npm install",
+  "installCommand": "npm ci",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
