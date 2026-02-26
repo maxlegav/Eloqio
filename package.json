@@ -19,7 +19,7 @@
     "@types/react": "19.2.10"
   },
   "engines": {
-    "node": ">=18"
+    "node": "20.x"
   },
   "packageManager": "npm@10.8.2",
   "workspaces": [
