@@ -1,20 +1,20 @@
 # Privacy Policy
 
-_Last updated: February 24, 2026_
+_Last updated: February 26, 2026_
 
-This Privacy Policy explains how **Handaptive LLC** ("we," "us," or "our") collects, uses, and protects your information when you use the Voquill application, website, and related services (collectively, the "Service"). Voquill is designed with privacy in mind — your voice data is never retained, and your transcriptions stay on your device.
+This Privacy Policy explains how **Eloquio Inc.** ("we," "us," or "our") collects, uses, and protects your information when you use the Eloquio application, website, and related services (collectively, the "Service"). Eloquio is designed with privacy in mind — your voice data is never retained, and your transcriptions stay on your device.
 
 ## 1. Information We Collect
 
 ### Account Information
 
-If you create a Voquill account (required for cloud mode, optional otherwise), we collect:
+If you create an Eloquio account (required for cloud mode, optional otherwise), we collect:
 
 - **Email address** (via email/password sign-up or Google OAuth)
 - **Display name** (from Google OAuth, or as you provide it)
-- **Optional profile information** you choose to provide, such as your name, bio, company, and job title
+- **Optional profile information** you choose to provide, such as your name, company, and job title
 
-No account is required to use Voquill in local or API key mode.
+No account is required to use Eloquio in local or API key mode.
 
 ### Voice and Audio Data
 
@@ -29,11 +29,11 @@ No account is required to use Voquill in local or API key mode.
 
 Your transcription text and history are stored **locally on your device only**. We do not store transcription content on our servers, even in cloud mode.
 
-Voquill also offers an **incognito mode** that prevents transcriptions from being saved even locally.
+Eloquio also offers an **incognito mode** that prevents transcriptions from being saved even locally.
 
 ### Usage Data and Analytics
 
-We use Mixpanel to collect anonymous product analytics to help us improve Voquill. This includes:
+We use Mixpanel to collect anonymous product analytics to help us improve Eloquio. This includes:
 
 - Page views and navigation within the app
 - Feature usage (e.g., activating dictation, completing onboarding)
@@ -49,9 +49,8 @@ We do not use analytics data to track the content of your transcriptions or voic
 We do not directly collect or store payment card details. Payments are processed by:
 
 - **Stripe** for desktop and web subscriptions
-- **Apple App Store** (via RevenueCat) for mobile subscriptions
 
-We receive limited billing information from these processors, such as your subscription status and Stripe customer ID, to manage your account.
+We receive limited billing information from Stripe, such as your subscription status and customer ID, to manage your account.
 
 ### Locally Stored Data
 
@@ -73,7 +72,7 @@ We use the information we collect to:
 - Process transcriptions in cloud mode
 - Manage your account and subscription
 - Enforce usage limits for cloud features
-- Send transactional emails (e.g., account verification)
+- Send transactional emails (e.g., account verification, billing receipts)
 - Analyze aggregate usage patterns to improve the product
 - Respond to support requests
 
@@ -90,11 +89,11 @@ We never share the content of your transcriptions or voice recordings because we
 
 ## 4. Data Storage and Security
 
-- **Cloud data** (account profiles, subscription information, dictionary terms, and writing tones) is stored in Google Firebase, which uses industry-standard security practices.
+- **Cloud data** (account profiles, subscription information) is stored in Google Firebase, which uses industry-standard security practices.
 - **Local data** is stored in an SQLite database on your device. API keys are encrypted at rest.
 - **Enterprise data** is stored on your organization's self-hosted infrastructure.
 
-We implement reasonable security measures to protect your information, but no method of transmission or storage is 100% secure.
+We implement reasonable security measures to protect your information, but no method of transmission or storage is 100% secure. To report a security vulnerability, contact [security@eloquio.com](mailto:security@eloquio.com).
 
 ## 5. Third-Party Services
 
@@ -104,18 +103,16 @@ Depending on your configuration, the Service may interact with the following thi
 |---|---|
 | Google Firebase | Account authentication, cloud data storage |
 | Groq | Cloud speech-to-text transcription and text processing |
-| Stripe | Payment processing (desktop/web) |
-| RevenueCat / Apple | Payment processing (mobile) |
+| Stripe | Payment processing |
 | Mixpanel | Product analytics |
-| Loops | Transactional email |
 | HuggingFace | Downloading speech-to-text models for local use |
 
-When you use **API key mode**, your data is sent directly to whichever third-party provider you configure (e.g., OpenAI, Anthropic, Google, Deepseek, OpenRouter, Azure). These interactions are governed by those providers' privacy policies, not ours.
+When you use **API key mode**, your data is sent directly to whichever third-party provider you configure (e.g., OpenAI, Anthropic, Google). These interactions are governed by those providers' privacy policies, not ours.
 
 ## 6. Data Retention
 
 - **Voice/audio data:** Never retained. Processed transiently in cloud mode and immediately discarded.
-- **Transcriptions:** Stored locally on your device indefinitely until you delete them or delete your account.
+- **Transcriptions:** Stored locally on your device indefinitely until you delete them or uninstall the app.
 - **Account data:** Retained while your account is active. When you delete your account, we delete your profile, subscription records, and associated data from our servers.
 - **Analytics data:** Retained in accordance with Mixpanel's data retention policies.
 
@@ -124,16 +121,16 @@ When you use **API key mode**, your data is sent directly to whichever third-par
 You have the following rights regarding your data:
 
 - **Access and export:** Your transcription data is stored locally on your device and is accessible to you at any time.
-- **Deletion:** You can delete your account through the application settings, which removes your data from our servers and clears your local data. You can also delete individual transcriptions at any time.
+- **Deletion:** You can delete your account through the application settings, which removes your data from our servers. You can also delete individual transcriptions at any time.
 - **Opt out of analytics:** Enterprise deployments have analytics disabled by default.
 - **Incognito mode:** You can enable incognito mode to prevent transcriptions from being stored, even locally.
-- **Local-only use:** You can use Voquill entirely offline in local mode, with no data leaving your device.
+- **Local-only use:** You can use Eloquio entirely offline in local mode, with no data leaving your device.
 
-If you have additional requests regarding your data, contact us at [privacy@voquill.com](mailto:privacy@voquill.com).
+For data requests, contact us at [privacy@eloquio.com](mailto:privacy@eloquio.com).
 
 ## 8. Children's Privacy
 
-Voquill is not intended for children under 13. We do not knowingly collect personal information from children under 13. If we learn that we have collected information from a child under 13, we will take steps to delete it promptly. If you believe a child under 13 has provided us with personal information, please contact us at [privacy@voquill.com](mailto:privacy@voquill.com).
+Eloquio is not intended for children under 13. We do not knowingly collect personal information from children under 13. If you believe a child under 13 has provided us with personal information, please contact us at [privacy@eloquio.com](mailto:privacy@eloquio.com).
 
 ## 9. International Data Transfers
 
@@ -145,7 +142,7 @@ We may update this Privacy Policy from time to time. When we make material chang
 
 ## 11. Contact Us
 
-For questions about this Privacy Policy or Voquill's privacy practices, you can:
+For questions about this Privacy Policy or Eloquio's privacy practices:
 
-- Open an issue on our [GitHub repository](https://github.com/josiahsrc/voquill)
-- Contact us at [privacy@voquill.com](mailto:privacy@voquill.com)
+- Privacy inquiries: [privacy@eloquio.com](mailto:privacy@eloquio.com)
+- General inquiries: [hello@eloquio.com](mailto:hello@eloquio.com)

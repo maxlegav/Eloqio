@@ -6,9 +6,9 @@ export function SiteHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: "#features", label: "Features" },
-    { href: "#enterprise", label: "Enterprise" },
-    { href: "#pricing", label: "Pricing" },
+    { href: "/#features", label: "Features" },
+    { href: "/#enterprise", label: "Enterprise" },
+    { href: "/#pricing", label: "Pricing" },
     { href: "mailto:hello@eloquio.com", label: "Contact" },
   ];
 

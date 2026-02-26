@@ -1,4 +1,12 @@
 import { Link } from "react-router-dom";
+import {
+  siNotion, siGmail, siFigma, siGithub, siDiscord, siZoom,
+  siLinear, siJira, siGoogledocs, siLoom, siAsana, siConfluence,
+  siCursor, siTrello, siClickup, siMiro, siObsidian, siHubspot,
+  siClaude, siGithubcopilot, siGitlab, siGooglemeet, siDropbox,
+  siGoogledrive, siGooglegemini,
+} from "simple-icons";
+import { CalPopupButton } from "../CalPopupButton";
 import styles from "./landing-sections.module.css";
 
 export function HeroSection() {
@@ -29,39 +37,72 @@ export function HeroSection() {
           <Link to="/download" className={styles.heroPrimaryBtn}>
             Download Free
           </Link>
-          <a
-            href="https://cal.com/eloqio/presentation-eloqio"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.heroSecondaryBtn}
-          >
+          <CalPopupButton className={styles.heroSecondaryBtn}>
             Book a Call
-          </a>
+          </CalPopupButton>
         </div>
       </div>
     </section>
   );
 }
 
+const WORKS_APPS = [
+  { icon: siNotion, name: "Notion" },
+  { icon: siGmail, name: "Gmail" },
+  { icon: siFigma, name: "Figma" },
+  { icon: siGithub, name: "GitHub" },
+  { icon: siDiscord, name: "Discord" },
+  { icon: siZoom, name: "Zoom" },
+  { icon: siLinear, name: "Linear" },
+  { icon: siJira, name: "Jira" },
+  { icon: siGoogledocs, name: "Docs" },
+  { icon: siLoom, name: "Loom" },
+  { icon: siAsana, name: "Asana" },
+  { icon: siConfluence, name: "Confluence" },
+  { icon: siCursor, name: "Cursor" },
+  { icon: siTrello, name: "Trello" },
+  { icon: siClickup, name: "ClickUp" },
+  { icon: siMiro, name: "Miro" },
+  { icon: siObsidian, name: "Obsidian" },
+  { icon: siHubspot, name: "HubSpot" },
+  { icon: siClaude, name: "Claude" },
+  { icon: siGithubcopilot, name: "Copilot" },
+  { icon: siGitlab, name: "GitLab" },
+  { icon: siGooglemeet, name: "Meet" },
+  { icon: siDropbox, name: "Dropbox" },
+  { icon: siGoogledrive, name: "Drive" },
+  { icon: siGooglegemini, name: "Gemini" },
+];
+
 export function WorksEverywhereSection() {
-  const apps = [
-    { icon: "terminal", name: "VS Code", hoverColor: "#007ACC" },
-    { icon: "chat", name: "Slack", hoverColor: "#4A154B" },
-    { icon: "article", name: "Notion", hoverColor: "#000000" },
-    { icon: "mail", name: "Gmail", hoverColor: "#EA4335" },
-    { icon: "smart_toy", name: "ChatGPT", hoverColor: "#10A37F" },
-  ];
+  const duplicated = [...WORKS_APPS, ...WORKS_APPS];
 
   return (
     <section className={styles.worksEverywhereSection}>
       <p className={styles.worksEverywhereTitle}>Works everywhere you work</p>
-      <div className={styles.worksEverywhereGrid}>
-        {apps.map((app) => (
-          <div key={app.name} className={styles.worksEverywhereItem}>
-            <span className="material-symbols-outlined">{app.icon}</span>
-            <span>{app.name}</span>
-          </div>
-        ))}
+      <div className={styles.worksMarqueeWrapper}>
+        <div className={styles.worksMarqueeTrack}>
+          {duplicated.map((app, i) => (
+            <div key={`${app.name}-${i}`} style={{ display: "flex", alignItems: "center" }}>
+              <div
+                className={styles.worksMarqueeItem}
+                style={{ "--brand-color": `#${app.icon.hex}` } as React.CSSProperties}
+              >
+                <svg
+                  className={styles.worksMarqueeLogo}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-label={app.name}
+                  role="img"
+                >
+                  <path d={app.icon.path} />
+                </svg>
+                <span>{app.name}</span>
+              </div>
+              <span className={styles.worksMarqueeSeparator} aria-hidden="true" />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -373,18 +414,33 @@ export function ToneSwitchingSection() {
   );
 }
 
+const PRO_PAYMENT_URL = "https://buy.stripe.com/eloquio_pro";
+
 export function PricingSection() {
-  const basicFeatures = [
-    "30 mins dictation/day",
-    "Standard Cleanup",
-    "1 Device",
+  const freeFeatures = [
+    "Local transcription",
+    "Works 100% offline",
+    "All languages supported",
+    "10 transcriptions/day",
+    "Basic smart cleanup",
   ];
 
   const proFeatures = [
-    "Unlimited Dictation",
-    "Custom Dictionary",
-    "4k Audio Quality",
-    "Enterprise Security",
+    "Unlimited transcriptions",
+    "Cloud AI processing",
+    "Custom dictionary",
+    "Advanced tone switching",
+    "API mode (BYOK)",
+    "Priority support",
+  ];
+
+  const enterpriseFeatures = [
+    "Everything in Pro",
+    "Team deployment",
+    "On-premise option",
+    "Custom integrations",
+    "Volume licensing",
+    "Dedicated support",
   ];
 
   return (
@@ -394,18 +450,21 @@ export function PricingSection() {
           <h2 className={styles.pricingTitle}>
             Simple <span className={styles.pricingTitleAccent}>Pricing</span>
           </h2>
+          <p className={styles.pricingSubtitle}>
+            Free for personal use. Pro for power users. Enterprise for teams.
+          </p>
         </div>
 
         <div className={styles.pricingGrid}>
           <div className={styles.pricingCard}>
             <div className={styles.pricingCardHeader}>
-              <h3 className={styles.pricingPlanName}>Basic</h3>
+              <h3 className={styles.pricingPlanName}>Personal</h3>
               <div className={styles.pricingPrice}>Free</div>
               <p className={styles.pricingDescription}>Perfect for individuals starting out.</p>
             </div>
 
             <ul className={styles.pricingFeatureList}>
-              {basicFeatures.map((feature) => (
+              {freeFeatures.map((feature) => (
                 <li key={feature} className={styles.pricingFeatureItem}>
                   <span className={`material-symbols-outlined ${styles.pricingCheckIcon}`}>
                     check_circle
@@ -419,7 +478,7 @@ export function PricingSection() {
               to="/download"
               className={`${styles.pricingButton} ${styles.pricingButtonOutline}`}
             >
-              Get Started
+              Download Free
             </Link>
           </div>
 
@@ -429,7 +488,7 @@ export function PricingSection() {
             <div className={styles.pricingCardHeader}>
               <h3 className={`${styles.pricingPlanName} ${styles.pricingPlanNamePro}`}>Pro</h3>
               <div className={`${styles.pricingPrice} ${styles.pricingPricePro}`}>
-                $19<span className={styles.pricingPriceUnit}>/mo</span>
+                $9<span className={styles.pricingPriceUnit}>/mo</span>
               </div>
               <p className={`${styles.pricingDescription} ${styles.pricingDescriptionPro}`}>
                 For power users and prompt engineers.
@@ -447,12 +506,39 @@ export function PricingSection() {
               ))}
             </ul>
 
-            <Link
-              to="/download"
+            <a
+              href={PRO_PAYMENT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className={`${styles.pricingButton} ${styles.pricingButtonPrimary}`}
             >
-              Start Free Trial
-            </Link>
+              Get Pro
+            </a>
+          </div>
+
+          <div className={`${styles.pricingCard} ${styles.pricingCardEnterprise}`}>
+            <div className={styles.pricingCardHeader}>
+              <h3 className={styles.pricingPlanName}>Enterprise</h3>
+              <div className={styles.pricingPrice}>Custom</div>
+              <p className={styles.pricingDescription}>For teams with advanced needs.</p>
+            </div>
+
+            <ul className={styles.pricingFeatureList}>
+              {enterpriseFeatures.map((feature) => (
+                <li key={feature} className={styles.pricingFeatureItem}>
+                  <span className={`material-symbols-outlined ${styles.pricingCheckIcon}`}>
+                    check_circle
+                  </span>
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <CalPopupButton
+              className={`${styles.pricingButton} ${styles.pricingButtonEnterprise}`}
+            >
+              Book a Call
+            </CalPopupButton>
           </div>
         </div>
       </div>

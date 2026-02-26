@@ -2,6 +2,7 @@ import { FormattedMessage } from "react-intl";
 import { trackButtonClick } from "../../utils/analytics.utils";
 import pageStyles from "../../styles/page.module.css";
 import { DownloadButton } from "../download-button";
+import { CalPopupButton } from "../CalPopupButton";
 import styles from "./pricing-section.module.css";
 
 type Feature = string | { text: string; deemphasized?: boolean };
@@ -129,16 +130,12 @@ export default function PricingSection() {
                   trackingId={`pricing-${plan.name.toLowerCase()}`}
                 />
               ) : (
-                <a
-                  href="https://cal.com/eloqio/presentation-eloqio"
-                  target="_blank"
-                  
-                  rel="noopener noreferrer"
+                <CalPopupButton
                   className={styles.ctaButton}
-                  onClick={() => trackButtonClick(`pricing-${plan.name.toLowerCase()}`)}
+                  onBeforeOpen={() => trackButtonClick(`pricing-${plan.name.toLowerCase()}`)}
                 >
                   <FormattedMessage defaultMessage="Book a Call" />
-                </a>
+                </CalPopupButton>
               )}
 
               <div className={styles.featuresSection}>

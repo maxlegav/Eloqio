@@ -1,39 +1,39 @@
 # Terms of Service
 
-_Last updated: February 24, 2026_
+_Last updated: February 26, 2026_
 
-These Terms of Service ("Terms") are a legal agreement between you and **Handaptive LLC** ("we," "us," or "our"), governing your use of the Voquill application, website, and related services (collectively, the "Service"). **By using Voquill, you agree to these Terms.** If you do not agree, do not use the Service.
+These Terms of Service ("Terms") are a legal agreement between you and **Eloquio Inc.** ("we," "us," or "our"), governing your use of the Eloquio application, website, and related services (collectively, the "Service"). **By using Eloquio, you agree to these Terms.** If you do not agree, do not use the Service.
 
 ## 1. Description of the Service
 
-Voquill is a voice typing application that lets you dictate text using your voice, with optional AI-powered post-processing. Voquill is available as a desktop application (macOS, Windows, Linux), a mobile application (iOS), and an enterprise deployment.
+Eloquio is a voice-to-text AI application that lets you dictate text using your voice, with optional AI-powered post-processing and prompt engineering assistance. Eloquio is available as a desktop application (macOS, Windows, Linux) and an enterprise deployment.
 
 ## 2. Service Modes
 
-Voquill offers multiple operating modes, each with different data handling characteristics:
+Eloquio offers multiple operating modes, each with different data handling characteristics:
 
 - **Local mode:** Voice processing happens entirely on your device using an embedded speech-to-text model. No audio or text data leaves your device.
 - **Cloud mode:** Audio is sent to our cloud infrastructure for transcription and optional post-processing, then the resulting text is returned to your device. Audio is processed transiently and is not stored on our servers.
 - **API key mode (BYOK):** You provide your own API keys for third-party AI providers. Audio and text are sent directly from your device to the provider you configure. We do not intermediate or store this data.
-- **Enterprise mode:** Your organization hosts its own Voquill server. Data handling is governed by your organization's policies and your agreement with them.
+- **Enterprise mode:** Your organization hosts its own Eloquio server. Data handling is governed by your organization's policies and your agreement with them.
 
 ## 3. Eligibility
 
-You must be at least 13 years old to use Voquill. If you are under 18, you represent that your parent or legal guardian has reviewed and agreed to these Terms on your behalf.
+You must be at least 13 years old to use Eloquio. If you are under 18, you represent that your parent or legal guardian has reviewed and agreed to these Terms on your behalf.
 
 ## 4. Account Registration
 
 Some features of the Service require an account. When you create an account, you agree to provide accurate information and keep it up to date. You are responsible for maintaining the security of your account credentials.
 
-An account is not required to use Voquill in local or API key mode.
+An account is not required to use Eloquio in local or API key mode.
 
 ## 5. Subscriptions and Payments
 
-Voquill offers free and paid subscription plans. Paid plans are billed through Stripe (desktop/web) or the Apple App Store via RevenueCat (mobile). By subscribing to a paid plan, you agree to the applicable pricing and billing terms presented at the time of purchase.
+Eloquio offers free and paid subscription plans. Paid plans are billed through Stripe. By subscribing to a paid plan, you agree to the applicable pricing and billing terms presented at the time of purchase.
 
 - Subscriptions renew automatically unless cancelled before the end of the current billing period.
-- You may manage or cancel your subscription through your account settings or the applicable app store.
-- Refunds are handled in accordance with the policies of the payment processor or app store through which you subscribed.
+- You may manage or cancel your subscription through your account settings.
+- Refunds are handled in accordance with Stripe's refund policies. Requests within 14 days of purchase may be considered at our discretion.
 
 ## 6. Usage Limits
 
@@ -41,7 +41,7 @@ Cloud-based features are subject to usage limits that vary by plan. Current limi
 
 ## 7. Your Content
 
-You retain ownership of all text, audio, and other content you create using Voquill ("Your Content"). We do not claim any ownership rights over Your Content.
+You retain ownership of all text, audio, and other content you create using Eloquio ("Your Content"). We do not claim any ownership rights over Your Content.
 
 - **Transcriptions** are stored locally on your device. We do not store your transcription text or history on our servers.
 - **Voice data** is never retained by us. In cloud mode, audio is processed transiently to produce a transcription and is not saved.
@@ -51,7 +51,7 @@ You retain ownership of all text, audio, and other content you create using Voqu
 You agree not to:
 
 - Use the Service for any unlawful purpose or in violation of any applicable laws.
-- Attempt to reverse engineer, decompile, or disassemble any proprietary components of the Service (the open-source components are governed by their respective licenses).
+- Attempt to reverse engineer, decompile, or disassemble any proprietary components of the Service.
 - Interfere with or disrupt the integrity or performance of the Service.
 - Attempt to gain unauthorized access to the Service or related systems.
 - Use the Service to transmit malware or other harmful code.
@@ -59,11 +59,11 @@ You agree not to:
 
 ## 9. Open Source
 
-Voquill's source code is available under the GNU Affero General Public License v3 (AGPLv3). Your use of the source code is governed by that license. These Terms govern your use of the hosted Service, pre-built applications, and any features or infrastructure we provide beyond the open-source code.
+Portions of Eloquio's source code are available under the GNU Affero General Public License v3 (AGPLv3). Your use of the source code is governed by that license. These Terms govern your use of the hosted Service, pre-built applications, and any features or infrastructure we provide beyond the open-source code.
 
 ## 10. Third-Party Services
 
-Voquill integrates with third-party services depending on your configuration, including but not limited to Groq, OpenAI, Anthropic, Google, Deepseek, OpenRouter, Azure, and others. When you use these integrations (whether through our cloud or your own API keys), your use is subject to the respective provider's terms and policies. We are not responsible for the practices of third-party providers.
+Eloquio integrates with third-party services depending on your configuration, including but not limited to Groq, OpenAI, Anthropic, Google, and others. When you use these integrations, your use is subject to the respective provider's terms and policies. We are not responsible for the practices of third-party providers.
 
 ## 11. Privacy
 
@@ -83,13 +83,13 @@ Voice-to-text transcription and AI post-processing are inherently imperfect. You
 
 ## 13. Limitation of Liability
 
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, HANDAPTIVE LLC SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA, USE, OR GOODWILL, ARISING OUT OF OR RELATED TO YOUR USE OF THE SERVICE, REGARDLESS OF THE THEORY OF LIABILITY.
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, ELOQUIO INC. SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA, USE, OR GOODWILL, ARISING OUT OF OR RELATED TO YOUR USE OF THE SERVICE, REGARDLESS OF THE THEORY OF LIABILITY.
 
 OUR TOTAL AGGREGATE LIABILITY FOR ANY CLAIMS ARISING FROM OR RELATED TO THESE TERMS OR THE SERVICE SHALL NOT EXCEED THE AMOUNT YOU HAVE PAID US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM, OR ONE HUNDRED DOLLARS ($100), WHICHEVER IS GREATER.
 
 ## 14. Indemnification
 
-You agree to indemnify and hold harmless Handaptive LLC and its officers, employees, and agents from any claims, damages, losses, or expenses (including reasonable attorneys' fees) arising from your use of the Service or violation of these Terms.
+You agree to indemnify and hold harmless Eloquio Inc. and its officers, employees, and agents from any claims, damages, losses, or expenses (including reasonable attorneys' fees) arising from your use of the Service or violation of these Terms.
 
 ## 15. Termination
 
@@ -101,7 +101,7 @@ We may update these Terms from time to time. When we make material changes, we w
 
 ## 17. Governing Law
 
-These Terms are governed by and construed in accordance with the laws of the State of Utah, United States, without regard to its conflict of law provisions. Any disputes arising under these Terms shall be resolved in the state or federal courts located in Utah.
+These Terms are governed by and construed in accordance with the laws of the State of Delaware, United States, without regard to its conflict of law provisions. Any disputes arising under these Terms shall be resolved in the state or federal courts located in Delaware.
 
 ## 18. Severability
 
@@ -109,11 +109,11 @@ If any provision of these Terms is found to be unenforceable, the remaining prov
 
 ## 19. Entire Agreement
 
-These Terms, together with the Privacy Policy, constitute the entire agreement between you and Handaptive LLC regarding the Service and supersede any prior agreements.
+These Terms, together with the Privacy Policy, constitute the entire agreement between you and Eloquio Inc. regarding the Service and supersede any prior agreements.
 
 ## 20. Contact
 
-For questions about these Terms, you can:
+For questions about these Terms, please contact us at:
 
-- Open an issue on our [GitHub repository](https://github.com/josiahsrc/voquill)
-- Contact us at [legal@voquill.com](mailto:legal@voquill.com)
+- Email: [legal@eloquio.com](mailto:legal@eloquio.com)
+- General inquiries: [hello@eloquio.com](mailto:hello@eloquio.com)
