@@ -5,7 +5,7 @@ import {
   siCursor, siTrello, siClickup, siMiro, siObsidian, siHubspot,
   siClaude, siGithubcopilot, siGitlab, siGooglemeet, siDropbox,
   siGoogledrive, siGooglegemini,
-} from "simple-icons";
+} from "../../lib/icons";
 import { CalPopupButton } from "../CalPopupButton";
 import styles from "./landing-sections.module.css";
 
