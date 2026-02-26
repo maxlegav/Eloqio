@@ -38,7 +38,6 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { ChangeEvent, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { showErrorSnackbar } from "../../actions/app.actions";
-import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import { setAutoLaunchEnabled } from "../../actions/settings.actions";
 import { loadTones } from "../../actions/tone.actions";
 import { setPreferredLanguage } from "../../actions/user.actions";

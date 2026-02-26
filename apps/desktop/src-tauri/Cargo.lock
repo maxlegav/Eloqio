@@ -3,59 +3,6 @@
 version = 4
 
 [[package]]
-name = "Voquill"
-version = "0.1.0"
-dependencies = [
- "arboard",
- "base64 0.21.7",
- "block",
- "chrono",
- "cocoa 0.24.1",
- "core-foundation 0.10.1",
- "core-foundation-sys",
- "core-graphics 0.24.0",
- "cpal",
- "dispatch",
- "dotenvy",
- "enigo",
- "ferrous-focus",
- "gtk",
- "hostname",
- "hound",
- "image",
- "jsonwebtoken",
- "objc",
- "rand 0.8.5",
- "rdev",
- "reqwest",
- "rfd",
- "rodio",
- "serde",
- "serde_json",
- "sha2",
- "sqlx",
- "strum",
- "tauri",
- "tauri-build",
- "tauri-plugin-autostart",
- "tauri-plugin-http",
- "tauri-plugin-opener",
- "tauri-plugin-os",
- "tauri-plugin-process",
- "tauri-plugin-single-instance",
- "tauri-plugin-sql",
- "tauri-plugin-updater",
- "thiserror 1.0.69",
- "tokio",
- "url",
- "wgpu",
- "whisper-rs",
- "windows 0.61.3",
- "x11",
- "zip 2.4.2",
-]
-
-[[package]]
 name = "accessibility-sys"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1559,6 +1506,59 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "eloquio"
+version = "0.1.0"
+dependencies = [
+ "arboard",
+ "base64 0.21.7",
+ "block",
+ "chrono",
+ "cocoa 0.24.1",
+ "core-foundation 0.10.1",
+ "core-foundation-sys",
+ "core-graphics 0.24.0",
+ "cpal",
+ "dispatch",
+ "dotenvy",
+ "enigo",
+ "ferrous-focus",
+ "gtk",
+ "hostname",
+ "hound",
+ "image",
+ "jsonwebtoken",
+ "objc",
+ "rand 0.8.5",
+ "rdev",
+ "reqwest",
+ "rfd",
+ "rodio",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "strum",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-autostart",
+ "tauri-plugin-http",
+ "tauri-plugin-opener",
+ "tauri-plugin-os",
+ "tauri-plugin-process",
+ "tauri-plugin-single-instance",
+ "tauri-plugin-sql",
+ "tauri-plugin-updater",
+ "thiserror 1.0.69",
+ "tokio",
+ "url",
+ "wgpu",
+ "whisper-rs",
+ "windows 0.61.3",
+ "x11",
+ "zip 2.4.2",
 ]
 
 [[package]]

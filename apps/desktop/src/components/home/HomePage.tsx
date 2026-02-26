@@ -5,6 +5,7 @@ import {
   CardContent,
   Chip,
   Stack,
+  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -22,6 +23,7 @@ import {
 import { DictationInstruction } from "../common/DictationInstruction";
 import { DashboardEntryLayout } from "../dashboard/DashboardEntryLayout";
 import { TranscriptionRow } from "../transcriptions/TranscriptRow";
+import { Section } from "../common/Section";
 import { GettingStartedList } from "./GettingStartedList";
 import { HomeSideEffects } from "./HomeSideEffects";
 
