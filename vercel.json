@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx turbo run build --filter=eloquio-web",
+  "buildCommand": "cd apps/web && npx vite build",
   "outputDirectory": "apps/web/dist",
   "installCommand": "npm install",
   "rewrites": [
