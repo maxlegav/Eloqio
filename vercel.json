@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npx turbo run build:vercel --filter=eloquio-web",
-  "outputDirectory": "apps/web/dist",
+  "buildCommand": "npx turbo run build:vercel --filter=eloquio-web && cp -r apps/web/dist/. dist/",
+  "outputDirectory": "dist",
   "installCommand": "rm -rf node_modules && npm ci",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
