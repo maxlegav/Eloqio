@@ -34,7 +34,7 @@ export default defineConfig(async () => {
       }),
     ],
     build: {
-      outDir: "dist",
+      outDir: process.env.VERCEL ? "../../dist" : "dist",
       sourcemap: true,
     },
     server: {
