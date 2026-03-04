@@ -1,170 +1,153 @@
 # Eloquio Implementation Stories
 
-## Overview
+> **Dernière mise à jour :** 2026-02-26
 
-This directory contains detailed implementation stories for white-labeling Voquill to Eloquio. Each story file includes:
-- Technical specifications
-- Code examples
-- Acceptance criteria (Gherkin format)
-- Verification steps
-- Merge conflict risk assessment
+## Légende statuts
+| Icône | Statut |
+|-------|--------|
+| ✅ | Complété |
+| 🔄 | Partiel / En cours |
+| ⬜ | À faire |
+| ➕ | Story ajoutée (hors plan initial) |
 
-## Story Index
+---
 
-### Epic 1: Enterprise Architecture Foundation
-| Story | Title | Priority | Complexity | Dependencies |
-|-------|-------|----------|------------|--------------|
-| 1.1 | Create Enterprise Module Structure | P0 | Low | None |
-| 1.2 | Create Enterprise Config Module | P0 | Low | 1.1 |
-| 1.3 | Create Enterprise Features Config | P0 | Low | 1.1 |
-| 1.4 | Create Enterprise Theme Overrides | P0 | Medium | 1.1 |
+## Epic 1 — Enterprise Architecture Foundation ✅ COMPLET
 
-### Epic 2: Complete Desktop App Branding
-| Story | Title | Priority | Complexity | Dependencies |
-|-------|-------|----------|------------|--------------|
-| 2.1 | Update Package Configuration | P1 | Low | None |
-| 2.2 | Update Tauri/Rust Configuration | P1 | Low | 1.2 |
-| 2.3 | Update Project Documentation | P1 | Low | None |
-| 2.4 | Integrate Visual Assets | P1 | Low | Assets ready |
-| 2.5 | Apply Eloquio Theme to MUI | P1 | Low | 1.4 |
-| 2.6 | Update All Locale Files | P1 | Low | None |
+| Story | Titre | Priorité | Complexité | Statut |
+|-------|-------|----------|------------|--------|
+| 1.1 | Create Enterprise Module Structure | P0 | Low | ✅ |
+| 1.2 | Create Enterprise Config Module | P0 | Low | ✅ |
+| 1.3 | Create Enterprise Features Config | P0 | Low | ✅ |
+| 1.4 | Create Enterprise Theme Overrides | P0 | Medium | ✅ |
 
-### Epic 3: Local-Only Mode Experience
-| Story | Title | Priority | Complexity | Dependencies |
-|-------|-------|----------|------------|--------------|
-| 3.1 | Analyze Settings Mode Component | P0 | Low | None |
-| 3.2 | Implement Conditional Mode Rendering | P0 | Medium | 1.3 |
-| 3.3 | Verify Local Default & Validation | P1 | Low | 1.3 |
+**Notes :** Module `/enterprise/` complet avec config, features, branding. ELOQUIO_CONFIG et ELOQUIO_FEATURES opérationnels.
 
-### Epic 4: Marketing Site Launch
-| Story | Title | Priority | Complexity | Dependencies |
-|-------|-------|----------|------------|--------------|
-| 4.1 | Update Site Config & Theme | P1 | Medium | None |
-| 4.2 | Replace Site Branding Assets | P1 | Low | Assets ready |
-| 4.3 | Rebuild Landing Page | P1 | High | 4.1, 4.2 |
-| 4.4 | Add FAQ Section | P1 | Medium | 4.1 |
-| 4.5 | Simplify Pricing Section | P1 | Medium | 4.1 |
-| 4.6 | Update Navigation & Footer | P1 | Low | 4.1 |
+---
 
-### Epic 5: Documentation & Maintenance
-| Story | Title | Priority | Complexity | Dependencies |
-|-------|-------|----------|------------|--------------|
-| 5.1 | Create White-Label Docs | P2 | Low | All of Epic 1 |
-| 5.2 | Create Upstream Sync Guide | P2 | Medium | None |
-| 5.3 | Update Existing Docs | P2 | Low | None |
+## Epic 2 — Complete Desktop App Branding 🔄 PRESQUE COMPLET
 
-## Implementation Order (Recommended)
+| Story | Titre | Priorité | Complexité | Statut |
+|-------|-------|----------|------------|--------|
+| 2.1 | Update Package Configuration | P1 | Low | ✅ |
+| 2.2 | Update Tauri/Rust Configuration | P1 | Low | ✅ |
+| 2.3 | Update Project Documentation | P1 | Low | ⬜ |
+| 2.4 | Integrate Visual Assets (icons) | P1 | Low | ⬜ |
+| 2.5 | Apply Eloquio Theme to MUI | P1 | Low | ✅ |
+| 2.6 | Update All Locale Files | P1 | Low | ✅ |
+| 2.7 ➕ | Fix Binary Naming (Tauri flavor configs) | P1 | Low | ✅ |
+| 2.8 ➕ | Fix Release Pipeline & Downloads | P1 | Medium | ✅ |
 
-```
-Phase 1: Foundation (Day 1)
-├── Story 1.1: Enterprise module structure
-├── Story 1.2: Config module (parallel)
-├── Story 1.3: Features config (parallel)
-└── Story 1.4: Theme overrides (parallel)
+**Notes :**
+- 2.5 : Fonts DM Sans + Playfair Display intégrées via @fontsource, h1-h5 en Playfair Display, logo en italic. Font-smoothing activé.
+- 2.6 : 50 valeurs remplacées dans 10 fichiers (de, en, es, fr, it, ko, pt, pt-BR, zh-CN, zh-TW).
+- 2.7 : 5 configs flavor mises à jour (prod, dev, local, gpu.prod, gpu.dev) → `Eloquio`, `com.eloquio.app.*`.
+- 2.8 : `downloads.tsx` pointe sur `maxlegav/Eloqio`. `Voquill.entitlements` → `Eloquio.entitlements`. Workflow CI utilise `${{ github.repository }}` (auto).
+- **2.3 restant :** Mettre à jour README.md et CLAUDE.md pour référencer Eloquio.
+- **2.4 restant :** Intégrer les icônes Eloquio (`.icns`, `.ico`, `.png`) dans `src-tauri/icons/`.
 
-Phase 2: Core Branding (Day 1-2)
-├── Story 2.1: Package.json updates
-├── Story 2.2: Tauri/Cargo config
-├── Story 2.5: Apply theme to MUI
-└── Story 2.6: Locale file updates (can batch)
+---
 
-Phase 3: Mode Hiding (Day 2)
-├── Story 3.1: Analyze current implementation
-├── Story 3.2: Implement conditional rendering
-└── Story 3.3: Verify defaults
+## Epic 3 — Local-Only Mode Experience ✅ COMPLET
 
-Phase 4: Visual Assets (Day 2-3)
-├── Story 2.3: Documentation updates
-├── Story 2.4: Logo/icon integration
-└── (Requires assets to be ready)
+| Story | Titre | Priorité | Complexité | Statut |
+|-------|-------|----------|------------|--------|
+| 3.1 | Analyze Settings Mode Component | P0 | Low | ✅ |
+| 3.2 | Implement Conditional Mode Rendering | P0 | Medium | ✅ |
+| 3.3 | Verify Local Default & Validation | P1 | Low | ✅ |
 
-Phase 5: Marketing Site (Day 3-4)
-├── Story 4.1: Site config
-├── Story 4.2: Site assets
-├── Story 4.3: Landing page rebuild
-├── Story 4.4: FAQ section
-├── Story 4.5: Pricing simplification
-└── Story 4.6: Navigation/footer
+**Notes :** `isAllowedMode` utilisé dans `AITranscriptionConfiguration.tsx`. `ELOQUIO_FEATURES.showApiMode: false`, `showCloudMode: false`. Seul le mode Local est visible.
 
-Phase 6: Documentation (Day 4-5)
-├── Story 5.1: White-label docs
-├── Story 5.2: Upstream sync guide
-└── Story 5.3: Update existing docs
-```
+---
 
-## Dependency Graph
+## Epic 4 — Marketing Site Launch 🔄 PRESQUE COMPLET
 
-```
-1.1 ─┬─→ 1.2 ─→ 2.2
-     ├─→ 1.3 ─→ 3.2
-     └─→ 1.4 ─→ 2.5
+| Story | Titre | Priorité | Complexité | Statut |
+|-------|-------|----------|------------|--------|
+| 4.1 | Update Site Config & Theme | P1 | Medium | ✅ |
+| 4.2 | Replace Site Branding Assets | P1 | Low | ✅ |
+| 4.3 | Rebuild Landing Page | P1 | High | ✅ |
+| 4.4 | Add FAQ Section | P1 | Medium | ✅ |
+| 4.5 | Simplify Pricing Section | P1 | Medium | ✅ |
+| 4.6 | Update Navigation & Footer | P1 | Low | ✅ |
 
-Assets ─→ 2.4
-       ─→ 4.2 ─→ 4.3
+**Notes :**
+- Section Discord retirée, lien GitHub Voquill supprimé du footer.
+- `id="what-is-voquill"` → `id="what-is-eloquio"`.
+- `ContactPage` title/description corrigés.
+- Cal.com "Book a Call" CTA actif dans hero et pricing Enterprise.
+- **Point d'attention :** La page de téléchargement affichera les releases du repo `maxlegav/Eloqio` — fonctionnel dès la première release CI.
 
-4.1 ─┬─→ 4.3
-     ├─→ 4.4
-     ├─→ 4.5
-     └─→ 4.6
-```
+---
 
-## Files in This Directory
+## Epic 5 — Documentation & Maintenance ⬜ NON COMMENCÉ
 
-### Detailed Story Files
-- `story-1.1-enterprise-module-structure.md`
-- `story-1.2-enterprise-config-module.md`
-- `story-1.3-enterprise-features-config.md`
-- `story-1.4-enterprise-theme-overrides.md`
-- `story-2.1-package-configuration.md`
-- `story-2.2-tauri-rust-configuration.md`
-- `story-2.5-apply-eloquio-theme.md`
-- `story-3.2-conditional-mode-rendering.md`
-- `story-4.3-landing-page-enterprise-messaging.md`
+| Story | Titre | Priorité | Complexité | Statut |
+|-------|-------|----------|------------|--------|
+| 5.1 | Create White-Label Docs | P2 | Low | ⬜ |
+| 5.2 | Create Upstream Sync Guide | P2 | Medium | ⬜ |
+| 5.3 | Update Existing Docs | P2 | Low | ⬜ |
 
-### Stories Without Detailed Files
-The remaining stories (2.3, 2.4, 2.6, 3.1, 3.3, 4.1, 4.2, 4.4-4.6, 5.1-5.3) have acceptance criteria in the main `epics.md` file but don't require detailed implementation files because they are:
-- Simple find-and-replace tasks (2.3, 2.6)
-- Asset replacement (2.4, 4.2)
-- Analysis/verification (3.1, 3.3)
-- Documentation writing (5.1-5.3)
-- Covered by similar patterns in detailed stories (4.1, 4.4-4.6)
+---
+
+## Epic 6 ➕ — Release & Déploiement ⬜ NON COMMENCÉ
+
+Stories découvertes hors plan initial, nécessaires pour la mise en production.
+
+| Story | Titre | Priorité | Complexité | Statut |
+|-------|-------|----------|------------|--------|
+| 6.1 ➕ | Configurer secrets GitHub Actions | P0 | Low | ⬜ |
+| 6.2 ➕ | Déclencher et valider première release CI | P0 | Medium | ⬜ |
+| 6.3 ➕ | Déployer le site web (Vercel) | P1 | Low | ⬜ |
+| 6.4 ➕ | Valider téléchargement `Eloquio.dmg` end-to-end | P1 | Low | ⬜ |
+
+**Notes :**
+- **6.1 :** Ajouter dans `maxlegav/Eloqio` → Settings → Secrets : `TAURI_PRIVATE_KEY`, `TAURI_PRIVATE_KEY_PASSWORD`, `TAURI_UPDATER_PUBLIC_KEY`, plus les secrets Apple pour notarisation macOS.
+- **6.2 :** Lancer le workflow `Release Desktop` en mode `dev` depuis GitHub Actions.
+- **6.3 :** Le `vercel.json` est déjà configuré — lier le repo à un projet Vercel et déployer.
+- **6.4 :** Vérifier que la page de téléchargement affiche bien `Eloquio.dmg`.
+
+---
+
+## Récapitulatif global
+
+| Epic | Titre | Statut | Complété |
+|------|-------|--------|----------|
+| 1 | Enterprise Architecture Foundation | ✅ Complet | 4/4 |
+| 2 | Desktop App Branding | 🔄 Presque | 6/8 |
+| 3 | Local-Only Mode | ✅ Complet | 3/3 |
+| 4 | Marketing Site | ✅ Complet | 6/6 |
+| 5 | Documentation & Maintenance | ⬜ Non commencé | 0/3 |
+| 6 | Release & Déploiement (nouveau) | ⬜ Non commencé | 0/4 |
+
+**Total : 19/28 stories complétées (68%)**
+
+---
+
+## Stories restantes (prochaines actions)
+
+### Priorité P0 — Bloquerait un lancement
+1. **6.1** — Configurer secrets GitHub Actions (TAURI_PRIVATE_KEY, Apple certs)
+2. **6.2** — Première release CI → valider `Eloquio.dmg`
+
+### Priorité P1 — Avant lancement public
+3. **2.4** — Intégrer les icônes Eloquio (`.icns`, `.ico`, `png`)
+4. **6.3** — Déployer le site web sur Vercel
+5. **6.4** — Valider téléchargement end-to-end
+6. **2.3** — Mettre à jour README et CLAUDE.md
+
+### Priorité P2 — Post-lancement
+7. **5.1** — Docs white-label
+8. **5.2** — Guide sync upstream
+9. **5.3** — Mise à jour docs existantes
+
+---
 
 ## Merge Conflict Risk Summary
 
-| Risk Level | Files |
-|------------|-------|
-| **High** | `.env.prod`, `.env.dev`, `.firebaserc` (Firebase config) |
+| Niveau | Fichiers |
+|--------|----------|
+| **High** | `.env.prod`, `.env.dev`, `.firebaserc` |
 | **Medium** | `package.json`, `tauri.conf.json`, `Cargo.toml` |
-| **Low** | `theme.ts`, settings components, locale files |
-| **None** | All `enterprise/` module files (new files) |
-
-## Quick Reference: Key Directories
-
-```
-apps/desktop/src/enterprise/     # All Eloquio customizations (NEW)
-├── config/                      # Brand values
-├── features/                    # Feature flags
-└── branding/                    # Theme overrides
-
-apps/desktop/src/components/     # UI components (minimal changes)
-apps/desktop/src/theme.ts        # MUI theme (add import + merge)
-apps/desktop/src/i18n/locales/   # Locale files (find-replace)
-apps/desktop/src-tauri/          # Rust backend (config only)
-apps/web/                        # Marketing site (full rebrand)
-```
-
-## Testing Checklist
-
-After all stories are complete:
-
-- [ ] `npm run check-types` passes in `apps/desktop`
-- [ ] `npm run build` produces "Eloquio" app
-- [ ] App window title shows "Eloquio"
-- [ ] App icon is Eloquio logo
-- [ ] Theme colors are Cream/Sage (not Voquill colors)
-- [ ] Settings shows only "Local" mode
-- [ ] All 12 locales show "Eloquio" text
-- [ ] Marketing site shows Eloquio branding
-- [ ] No Discord links on marketing site
-- [ ] "Book a Call" CTA works
-- [ ] Can still merge upstream Voquill changes
+| **Low** | `theme.ts`, composants settings, fichiers locales |
+| **None** | Tous les fichiers `enterprise/` (nouveaux) |

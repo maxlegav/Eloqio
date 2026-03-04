@@ -3,7 +3,7 @@ import styles from "./video-section.module.css";
 
 export default function VideoSection() {
   return (
-    <section className={styles.videoSection} id="what-is-voquill">
+    <section className={styles.videoSection} id="what-is-eloquio">
       <h2 className={styles.heading}>
         <FormattedMessage defaultMessage="What is Eloquio?" />
       </h2>

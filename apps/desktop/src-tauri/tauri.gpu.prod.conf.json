@@ -1,7 +1,7 @@
 {
-  "productName": "Voquill GPU",
-  "identifier": "com.voquill.desktop.gpu",
-  "mainBinaryName": "Voquill GPU",
+  "productName": "Eloquio GPU",
+  "identifier": "com.eloquio.app.gpu",
+  "mainBinaryName": "Eloquio GPU",
   "bundle": {
     "linux": {
       "deb": {
@@ -12,7 +12,7 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/josiahsrc/voquill/releases/download/desktop-gpu-prod/latest.json"
+        "https://github.com/maxlegav/Eloqio/releases/download/desktop-gpu-prod/latest.json"
       ]
     }
   }

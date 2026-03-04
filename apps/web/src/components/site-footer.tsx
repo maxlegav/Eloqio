@@ -39,14 +39,6 @@ export function SiteFooter() {
               <h4 className={styles.footerColumnTitle}>Resources</h4>
               <a href="#" className={styles.footerLink}>Documentation</a>
               <a href="#" className={styles.footerLink}>Changelog</a>
-              <a
-                href="https://github.com/josiahsrc/voquill"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.footerLink}
-              >
-                GitHub
-              </a>
               <a href="#" className={styles.footerLink}>Status</a>
             </div>
 

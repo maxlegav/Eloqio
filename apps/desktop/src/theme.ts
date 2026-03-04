@@ -51,8 +51,18 @@ export const theme = createTheme({
   shadows: Array(25).fill("none") as unknown[] as Shadows,
 
   typography: {
-    fontFamily: '"DM Sans", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"DM Sans", "Helvetica", "Arial", sans-serif',
     pxToRem: (px: number) => `${px / 16}rem`,
+
+    h1: { fontSize: 48, lineHeight: 1.1, fontWeight: 900, fontFamily: '"Playfair Display", Georgia, serif' },
+    h2: { fontSize: 36, lineHeight: 1.2, fontWeight: 700, fontFamily: '"Playfair Display", Georgia, serif' },
+    h3: { fontSize: 28, lineHeight: 1.3, fontWeight: 700, fontFamily: '"Playfair Display", Georgia, serif' },
+    h4: { fontSize: 24, lineHeight: 1.4, fontWeight: 700, fontFamily: '"Playfair Display", Georgia, serif' },
+    h5: { fontSize: 20, lineHeight: 1.5, fontWeight: 700, fontFamily: '"Playfair Display", Georgia, serif' },
+    h6: { fontSize: 16, lineHeight: 1.5, fontWeight: 600 },
+
+    subtitle1: { fontSize: 16, lineHeight: 1.6, fontWeight: 500 },
+    subtitle2: { fontSize: 14, lineHeight: 1.6, fontWeight: 500 },
 
     displayLarge: { fontSize: 57, lineHeight: 1.1, fontWeight: 900, fontFamily: '"Playfair Display", Georgia, serif' },
     displayMedium: { fontSize: 45, lineHeight: 1.1, fontWeight: 700, fontFamily: '"Playfair Display", Georgia, serif' },
@@ -84,7 +94,10 @@ export const theme = createTheme({
         body: {
           backgroundColor: themeParam.vars.palette.level0,
           color: themeParam.vars.palette.text?.primary,
+          fontFamily: '"DM Sans", "Helvetica", "Arial", sans-serif',
           transition: "background-color 0.3s ease",
+          WebkitFontSmoothing: "antialiased",
+          MozOsxFontSmoothing: "grayscale",
         },
       }),
     },

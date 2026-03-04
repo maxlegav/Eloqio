@@ -1,7 +1,7 @@
 {
-  "productName": "Voquill",
-  "identifier": "com.voquill.desktop",
-  "mainBinaryName": "Voquill",
+  "productName": "Eloquio",
+  "identifier": "com.eloquio.app",
+  "mainBinaryName": "Eloquio",
   "bundle": {
     "linux": {
       "deb": {
@@ -12,7 +12,7 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/josiahsrc/voquill/releases/download/desktop-prod/latest.json"
+        "https://github.com/maxlegav/Eloqio/releases/download/desktop-prod/latest.json"
       ]
     }
   }

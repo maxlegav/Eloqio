@@ -1,11 +1,11 @@
 {
-  "productName": "Voquill GPU (dev)",
-  "identifier": "com.voquill.desktop.gpu.dev",
-  "mainBinaryName": "Voquill GPU (dev)",
+  "productName": "Eloquio GPU (dev)",
+  "identifier": "com.eloquio.app.gpu.dev",
+  "mainBinaryName": "Eloquio GPU (dev)",
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/josiahsrc/voquill/releases/download/desktop-gpu-dev/latest.json"
+        "https://github.com/maxlegav/Eloqio/releases/download/desktop-gpu-dev/latest.json"
       ]
     }
   }

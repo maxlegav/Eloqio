@@ -19,10 +19,13 @@ export const LogoWithText = ({ sx, ...rest }: LogoWithTextProps) => {
       <Logo sx={{ mr: 1 }} />
       <Typography
         variant="h5"
-        fontWeight="bold"
+        fontWeight={700}
         sx={{
           userSelect: "none",
           display: { xs: "none", sm: "block" },
+          fontFamily: '"Playfair Display", Georgia, serif',
+          fontStyle: "italic",
+          letterSpacing: "0.02em",
         }}
       >
         {ELOQUIO_CONFIG.appName}

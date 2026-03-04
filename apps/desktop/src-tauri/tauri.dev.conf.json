@@ -1,11 +1,11 @@
 {
-  "productName": "Voquill (dev)",
-  "identifier": "com.voquill.desktop.dev",
-  "mainBinaryName": "Voquill (dev)",
+  "productName": "Eloquio (dev)",
+  "identifier": "com.eloquio.app.dev",
+  "mainBinaryName": "Eloquio (dev)",
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/josiahsrc/voquill/releases/download/desktop-dev/latest.json"
+        "https://github.com/maxlegav/Eloqio/releases/download/desktop-dev/latest.json"
       ]
     }
   }
