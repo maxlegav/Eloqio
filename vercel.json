@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd apps/web && npx vite build",
+  "buildCommand": "npx vite build",
   "outputDirectory": "dist",
   "installCommand": "rm -rf node_modules && npm ci",
   "rewrites": [
