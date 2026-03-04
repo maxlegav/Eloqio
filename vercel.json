@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx turbo run build:vercel --filter=eloquio-web && cp -r apps/web/dist/. dist/",
+  "buildCommand": "cd apps/web && npx vite build",
   "outputDirectory": "dist",
   "installCommand": "rm -rf node_modules && npm ci",
   "rewrites": [
