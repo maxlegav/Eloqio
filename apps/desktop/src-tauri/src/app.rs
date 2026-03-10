@@ -1,5 +1,6 @@
 use sqlx::sqlite::SqlitePoolOptions;
 use tauri::{Manager, WindowEvent};
+use tauri_plugin_log::{Target, TargetKind, TimezoneStrategy};
 
 const AUTOSTART_HIDDEN_ARG: &str = "--voquill-autostart-hidden";
 
@@ -7,6 +8,28 @@ pub fn build() -> tauri::Builder<tauri::Wry> {
     let updater_builder = tauri_plugin_updater::Builder::new();
 
     tauri::Builder::default()
+        .plugin({
+            let file_name = chrono::Local::now().format("voquill_%Y-%m-%d_%H%M%S").to_string();
+            tauri_plugin_log::Builder::new()
+                .targets([
+                    Target::new(TargetKind::LogDir { file_name: Some(file_name) }),
+                    Target::new(TargetKind::Stdout),
+                    Target::new(TargetKind::Webview),
+                ])
+                .level(log::LevelFilter::Debug)
+                .timezone_strategy(TimezoneStrategy::UseLocal)
+                .format(|out, message, record| {
+                    let now = chrono::Local::now();
+                    out.finish(format_args!(
+                        "[{}][{}][{}] {}",
+                        now.format("%Y-%m-%d][%H:%M:%S%.3f"),
+                        record.level(),
+                        record.target(),
+                        message
+                    ))
+                })
+                .build()
+        })
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             // When a second instance is launched, bring the existing window to the foreground
             if let Some(window) = app.get_webview_window("main") {
@@ -15,7 +38,7 @@ pub fn build() -> tauri::Builder<tauri::Wry> {
         }))
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            Some(vec![AUTOSTART_HIDDEN_ARG.into()]),
+            Some(vec![AUTOSTART_HIDDEN_ARG]),
         ))
         .plugin(tauri_plugin_process::init())
         .plugin(
@@ -27,6 +50,7 @@ pub fn build() -> tauri::Builder<tauri::Wry> {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_shell::init())
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
@@ -35,21 +59,28 @@ pub fn build() -> tauri::Builder<tauri::Wry> {
                     #[cfg(target_os = "macos")]
                     {
                         if let Err(err) = crate::platform::macos::dock::hide_dock_icon() {
-                            eprintln!("Failed to hide dock icon: {err}");
+                            log::error!("Failed to hide dock icon: {err}");
                         }
                     }
                 }
             }
         })
         .setup(|app| {
-            eprintln!("[app] Starting application setup...");
+            std::panic::set_hook(Box::new(|info| {
+                log::error!("PANIC: {info}");
+            }));
+
+            log::info!("Starting application setup...");
+
+            // Purge old log files, keeping the latest 10
+            crate::system::diagnostics::purge_old_logs(app.handle());
 
             // Write startup diagnostics for debugging
             crate::system::diagnostics::write_startup_diagnostics(app.handle());
 
             let db_url = {
                 let handle = app.handle();
-                crate::system::paths::database_url(&handle)
+                crate::system::paths::database_url(handle)
                     .map_err(|err| -> Box<dyn std::error::Error> { Box::new(err) })?
             };
 
@@ -73,7 +104,7 @@ pub fn build() -> tauri::Builder<tauri::Wry> {
                         #[cfg(target_os = "macos")]
                         {
                             if let Err(err) = crate::platform::macos::dock::hide_dock_icon() {
-                                eprintln!("Failed to hide dock icon on autostart: {err}");
+                                log::error!("Failed to hide dock icon on autostart: {err}");
                             }
                         }
                     }
@@ -87,53 +118,21 @@ pub fn build() -> tauri::Builder<tauri::Wry> {
                 use crate::platform::Recorder;
                 use std::sync::Arc;
 
-                let transcriber_state = crate::state::TranscriberState::new();
-
                 let recorder: Arc<dyn Recorder> =
                     Arc::new(crate::platform::audio::RecordingManager::new());
 
                 app.manage(recorder);
-                app.manage(transcriber_state);
-
-                let pool_for_bg = pool.clone();
-                let app_handle_for_bg = app_handle.clone();
-                tauri::async_runtime::spawn(async move {
-                    let transcription_mode =
-                        crate::db::preferences_queries::fetch_transcription_mode(pool_for_bg)
-                            .await
-                            .ok()
-                            .flatten();
-
-                    let should_init_whisper = match transcription_mode.as_deref() {
-                        None | Some("local") => true,
-                        _ => false,
-                    };
-
-                    if should_init_whisper {
-                        eprintln!("[app] Transcription mode is local or unset, initializing Whisper in background...");
-                        if let Err(err) =
-                            initialize_transcriber_background(&app_handle_for_bg).await
-                        {
-                            eprintln!("[app] Background Whisper initialization failed: {err}");
-                        }
-                    } else {
-                        eprintln!(
-                            "[app] Transcription mode is '{}', skipping Whisper initialization",
-                            transcription_mode.as_deref().unwrap_or("unknown")
-                        );
-                    }
-                });
 
                 // Pre-warm audio output for instant chime playback
                 crate::system::audio_feedback::warm_audio_output();
 
-                crate::overlay::ensure_pill_overlay_window(&app_handle)
+                crate::overlay::ensure_pill_overlay_window(app_handle)
                     .map_err(|err| -> Box<dyn std::error::Error> { Box::new(err) })?;
 
-                crate::overlay::ensure_toast_overlay_window(&app_handle)
+                crate::overlay::ensure_toast_overlay_window(app_handle)
                     .map_err(|err| -> Box<dyn std::error::Error> { Box::new(err) })?;
 
-                crate::overlay::ensure_agent_overlay_window(&app_handle)
+                crate::overlay::ensure_agent_overlay_window(app_handle)
                     .map_err(|err| -> Box<dyn std::error::Error> { Box::new(err) })?;
 
                 if let Some(pill_window) =
@@ -162,7 +161,7 @@ pub fn build() -> tauri::Builder<tauri::Wry> {
 
             // Open dev tools if VOQUILL_ENABLE_DEVTOOLS is set
             if std::env::var("VOQUILL_ENABLE_DEVTOOLS").is_ok() {
-                eprintln!("[app] VOQUILL_ENABLE_DEVTOOLS detected, opening dev tools...");
+                log::info!("VOQUILL_ENABLE_DEVTOOLS detected, opening dev tools...");
                 if let Some(main_window) = app.get_webview_window("main") {
                     main_window.open_devtools();
                 }
@@ -193,7 +192,6 @@ pub fn build() -> tauri::Builder<tauri::Wry> {
             crate::commands::store_transcription_audio,
             crate::commands::storage_upload_data,
             crate::commands::storage_get_download_url,
-            crate::commands::transcribe_audio,
             crate::commands::surface_main_window,
             crate::commands::set_toast_overlay_click_through,
             crate::commands::set_agent_overlay_click_through,
@@ -206,6 +204,7 @@ pub fn build() -> tauri::Builder<tauri::Wry> {
             crate::commands::transcription_audio_load,
             crate::commands::purge_stale_transcription_audio,
             crate::commands::export_transcription,
+            crate::commands::export_diagnostics,
             crate::commands::term_create,
             crate::commands::term_update,
             crate::commands::term_list,
@@ -233,37 +232,7 @@ pub fn build() -> tauri::Builder<tauri::Wry> {
             crate::commands::get_text_field_info,
             crate::commands::get_screen_context,
             crate::commands::get_selected_text,
-            crate::commands::initialize_local_transcriber,
             crate::commands::read_enterprise_target,
             crate::commands::get_keyboard_language,
         ])
-}
-
-async fn initialize_transcriber_background(app: &tauri::AppHandle) -> Result<(), String> {
-    use std::sync::Arc;
-    use tauri::Manager;
-
-    let transcriber_state = app.state::<crate::state::TranscriberState>();
-    if transcriber_state.is_initialized() {
-        return Ok(());
-    }
-
-    let default_model_size = crate::system::models::WhisperModelSize::default();
-    let app_clone = app.clone();
-    let model_path = tauri::async_runtime::spawn_blocking(move || {
-        crate::system::models::ensure_whisper_model(&app_clone, default_model_size)
-            .map_err(|err| err.to_string())
-    })
-    .await
-    .map_err(|err| err.to_string())??;
-
-    let new_transcriber: Arc<dyn crate::platform::Transcriber> = Arc::new(
-        crate::platform::whisper::WhisperTranscriber::new(&model_path)
-            .map_err(|err| format!("Failed to initialize Whisper transcriber: {err}"))?,
-    );
-
-    let _ = transcriber_state.initialize(new_transcriber);
-    eprintln!("[app] Background Whisper initialization completed successfully");
-
-    Ok(())
 }

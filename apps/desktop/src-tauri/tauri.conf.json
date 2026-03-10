@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.eloquio.app",
   "build": {
-    "beforeDevCommand": "npm run dev:vite",
+    "beforeDevCommand": "pnpm run dev:vite",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "pnpm run build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -34,6 +34,10 @@
     "active": true,
     "targets": "all",
     "createUpdaterArtifacts": true,
+    "externalBin": [
+      "binaries/rust-transcription-cpu",
+      "binaries/rust-transcription-gpu"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -50,6 +54,11 @@
     "windows": {
       "webviewInstallMode": {
         "type": "embedBootstrapper"
+      }
+    },
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": true
       }
     }
   },

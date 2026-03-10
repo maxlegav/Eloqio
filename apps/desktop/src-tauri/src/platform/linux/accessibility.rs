@@ -5,7 +5,7 @@ use enigo::{Enigo, Key, KeyboardControllable};
 use std::{thread, time::Duration};
 
 pub fn get_text_field_info() -> TextFieldInfo {
-    eprintln!("[linux::accessibility] Text field info not implemented for Linux");
+    log::warn!("Text field info not implemented for Linux");
 
     TextFieldInfo {
         cursor_position: None,
@@ -15,9 +15,11 @@ pub fn get_text_field_info() -> TextFieldInfo {
 }
 
 pub fn get_screen_context() -> ScreenContextInfo {
-    eprintln!("[linux::accessibility] Screen context not implemented for Linux");
+    log::warn!("Screen context not implemented for Linux");
 
-    ScreenContextInfo { screen_context: None }
+    ScreenContextInfo {
+        screen_context: None,
+    }
 }
 
 pub fn get_selected_text() -> Option<String> {

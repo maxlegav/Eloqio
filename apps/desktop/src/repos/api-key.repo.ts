@@ -15,6 +15,7 @@ type LocalApiKey = {
   openrouterConfig?: string | null;
   baseUrl?: string | null;
   azureRegion?: string | null;
+  includeV1Path?: boolean | null;
 };
 
 const parseOpenRouterConfig = (
@@ -40,6 +41,7 @@ const fromLocalApiKey = (apiKey: LocalApiKey): ApiKey => ({
   openRouterConfig: parseOpenRouterConfig(apiKey.openrouterConfig),
   baseUrl: apiKey.baseUrl ?? null,
   azureRegion: apiKey.azureRegion ?? null,
+  includeV1Path: apiKey.includeV1Path ?? null,
 });
 
 export type CreateApiKeyPayload = {
@@ -49,21 +51,25 @@ export type CreateApiKeyPayload = {
   key: string;
   baseUrl?: string;
   azureRegion?: string;
+  includeV1Path?: boolean;
 };
 
 export type UpdateApiKeyPayload = {
   id: string;
+  name?: string;
+  key?: string;
   transcriptionModel?: string | null;
   postProcessingModel?: string | null;
   openRouterConfig?: OpenRouterConfig | null;
   baseUrl?: string | null;
   azureRegion?: string | null;
+  includeV1Path?: boolean | null;
 };
 
 export abstract class BaseApiKeyRepo extends BaseRepo {
   abstract listApiKeys(): Promise<ApiKey[]>;
   abstract createApiKey(payload: CreateApiKeyPayload): Promise<ApiKey>;
-  abstract updateApiKey(payload: UpdateApiKeyPayload): Promise<void>;
+  abstract updateApiKey(payload: UpdateApiKeyPayload): Promise<ApiKey>;
   abstract deleteApiKey(id: string): Promise<void>;
 }
 
@@ -80,8 +86,7 @@ export class LocalApiKeyRepo extends BaseApiKeyRepo {
     return fromLocalApiKey(created);
   }
 
-  async updateApiKey(payload: UpdateApiKeyPayload): Promise<void> {
-    // Convert OpenRouterConfig object to JSON string for Rust
+  async updateApiKey(payload: UpdateApiKeyPayload): Promise<ApiKey> {
     const request = {
       ...payload,
       openRouterConfig:
@@ -91,7 +96,8 @@ export class LocalApiKeyRepo extends BaseApiKeyRepo {
             : null
           : undefined,
     };
-    await invoke<void>("api_key_update", { request });
+    const updated = await invoke<LocalApiKey>("api_key_update", { request });
+    return fromLocalApiKey(updated);
   }
 
   async deleteApiKey(id: string): Promise<void> {

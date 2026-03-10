@@ -7,21 +7,19 @@ use windows::Win32::System::Com::{
 use windows::Win32::UI::Accessibility::{
     CUIAutomation, IUIAutomation, IUIAutomationElement, IUIAutomationTextPattern,
     IUIAutomationTreeWalker, IUIAutomationValuePattern, TreeScope_Children,
-    UIA_ControlTypePropertyId, UIA_DataItemControlTypeId, UIA_HeaderControlTypeId,
-    UIA_HelpTextPropertyId, UIA_HyperlinkControlTypeId, UIA_ListItemControlTypeId,
-    UIA_MenuBarControlTypeId, UIA_MenuControlTypeId, UIA_MenuItemControlTypeId,
-    UIA_NamePropertyId, UIA_StatusBarControlTypeId, UIA_TabControlTypeId,
-    UIA_TextControlTypeId, UIA_TextPatternId, UIA_ToolBarControlTypeId,
-    UIA_TreeItemControlTypeId, UIA_ValuePatternId, UIA_WindowControlTypeId,
-    UIA_ButtonControlTypeId, UIA_CheckBoxControlTypeId, UIA_ComboBoxControlTypeId,
-    UIA_DocumentControlTypeId, UIA_GroupControlTypeId,
-    UIA_ListControlTypeId, UIA_PaneControlTypeId, UIA_RadioButtonControlTypeId,
-    UIA_TableControlTypeId, UIA_TreeControlTypeId, UIA_DataGridControlTypeId,
-    UIA_CustomControlTypeId, UIA_SplitButtonControlTypeId, UIA_SliderControlTypeId,
-    UIA_SpinnerControlTypeId, UIA_ProgressBarControlTypeId, UIA_TabItemControlTypeId,
-    UIA_TitleBarControlTypeId, UIA_HeaderItemControlTypeId, UIA_ThumbControlTypeId,
-    UIA_ImageControlTypeId, UIA_CalendarControlTypeId, UIA_SemanticZoomControlTypeId,
-    UIA_AppBarControlTypeId,
+    UIA_AppBarControlTypeId, UIA_ButtonControlTypeId, UIA_CalendarControlTypeId,
+    UIA_CheckBoxControlTypeId, UIA_ComboBoxControlTypeId, UIA_ControlTypePropertyId,
+    UIA_CustomControlTypeId, UIA_DataGridControlTypeId, UIA_DataItemControlTypeId,
+    UIA_DocumentControlTypeId, UIA_GroupControlTypeId, UIA_HeaderControlTypeId,
+    UIA_HeaderItemControlTypeId, UIA_HelpTextPropertyId, UIA_HyperlinkControlTypeId,
+    UIA_ImageControlTypeId, UIA_ListControlTypeId, UIA_ListItemControlTypeId,
+    UIA_MenuBarControlTypeId, UIA_MenuControlTypeId, UIA_MenuItemControlTypeId, UIA_NamePropertyId,
+    UIA_PaneControlTypeId, UIA_ProgressBarControlTypeId, UIA_RadioButtonControlTypeId,
+    UIA_SemanticZoomControlTypeId, UIA_SliderControlTypeId, UIA_SpinnerControlTypeId,
+    UIA_SplitButtonControlTypeId, UIA_StatusBarControlTypeId, UIA_TabControlTypeId,
+    UIA_TabItemControlTypeId, UIA_TableControlTypeId, UIA_TextControlTypeId, UIA_TextPatternId,
+    UIA_ThumbControlTypeId, UIA_TitleBarControlTypeId, UIA_ToolBarControlTypeId,
+    UIA_TreeControlTypeId, UIA_TreeItemControlTypeId, UIA_ValuePatternId, UIA_WindowControlTypeId,
 };
 
 fn empty_text_field_info() -> TextFieldInfo {
@@ -36,7 +34,7 @@ pub fn get_text_field_info() -> TextFieldInfo {
     match try_get_text_field_info() {
         Ok(info) => info,
         Err(e) => {
-            eprintln!("[windows::accessibility] Error getting text field info: {:?}", e);
+            log::error!("Error getting text field info: {:?}", e);
             empty_text_field_info()
         }
     }
@@ -54,7 +52,7 @@ fn try_get_text_field_info() -> Result<TextFieldInfo, windows::core::Error> {
         let pattern = focused.GetCurrentPattern(UIA_TextPatternId)?;
 
         if pattern.as_raw().is_null() {
-            eprintln!("[windows::accessibility] Focused element does not support TextPattern");
+            log::debug!("Focused element does not support TextPattern");
             return Ok(empty_text_field_info());
         }
 
@@ -101,7 +99,7 @@ pub fn get_screen_context() -> ScreenContextInfo {
     match try_get_screen_context() {
         Ok(info) => info,
         Err(e) => {
-            eprintln!("[windows::accessibility] Error getting screen context: {:?}", e);
+            log::error!("Error getting screen context: {:?}", e);
             ScreenContextInfo { screen_context: None }
         }
     }
@@ -155,7 +153,7 @@ unsafe fn gather_context_outward(
 
         let control_type = get_control_type(&parent);
 
-        if control_type == UIA_WindowControlTypeId.0 as i32 {
+        if control_type == UIA_WindowControlTypeId.0 {
             if let Some(name) = get_element_name(&parent) {
                 let t = name.trim();
                 if !t.is_empty() {
@@ -259,22 +257,22 @@ unsafe fn extract_text_from_element(
     }
 
     let value_safe_types = [
-        UIA_TextControlTypeId.0 as i32,
-        UIA_HyperlinkControlTypeId.0 as i32,
-        UIA_DataItemControlTypeId.0 as i32,
-        UIA_ListItemControlTypeId.0 as i32,
-        UIA_TreeItemControlTypeId.0 as i32,
-        UIA_MenuItemControlTypeId.0 as i32,
-        UIA_ButtonControlTypeId.0 as i32,
-        UIA_CheckBoxControlTypeId.0 as i32,
-        UIA_RadioButtonControlTypeId.0 as i32,
-        UIA_ComboBoxControlTypeId.0 as i32,
-        UIA_TabItemControlTypeId.0 as i32,
-        UIA_HeaderItemControlTypeId.0 as i32,
-        UIA_SplitButtonControlTypeId.0 as i32,
-        UIA_SliderControlTypeId.0 as i32,
-        UIA_SpinnerControlTypeId.0 as i32,
-        UIA_ProgressBarControlTypeId.0 as i32,
+        UIA_TextControlTypeId.0,
+        UIA_HyperlinkControlTypeId.0,
+        UIA_DataItemControlTypeId.0,
+        UIA_ListItemControlTypeId.0,
+        UIA_TreeItemControlTypeId.0,
+        UIA_MenuItemControlTypeId.0,
+        UIA_ButtonControlTypeId.0,
+        UIA_CheckBoxControlTypeId.0,
+        UIA_RadioButtonControlTypeId.0,
+        UIA_ComboBoxControlTypeId.0,
+        UIA_TabItemControlTypeId.0,
+        UIA_HeaderItemControlTypeId.0,
+        UIA_SplitButtonControlTypeId.0,
+        UIA_SliderControlTypeId.0,
+        UIA_SpinnerControlTypeId.0,
+        UIA_ProgressBarControlTypeId.0,
     ];
 
     if value_safe_types.contains(&control_type) {
@@ -301,7 +299,7 @@ fn get_control_type(element: &IUIAutomationElement) -> i32 {
         element
             .GetCurrentPropertyValue(UIA_ControlTypePropertyId)
             .ok()
-            .and_then(|v| v.Anonymous.Anonymous.Anonymous.lVal.try_into().ok())
+            .map(|v| v.Anonymous.Anonymous.Anonymous.lVal)
             .unwrap_or(0)
     }
 }
@@ -360,32 +358,32 @@ fn get_element_help_text(element: &IUIAutomationElement) -> Option<String> {
 fn should_skip_control_type(control_type: i32) -> bool {
     let skip_types = [
         0, // Unknown
-        UIA_ThumbControlTypeId.0 as i32,
-        UIA_TitleBarControlTypeId.0 as i32,
-        UIA_ImageControlTypeId.0 as i32,
+        UIA_ThumbControlTypeId.0,
+        UIA_TitleBarControlTypeId.0,
+        UIA_ImageControlTypeId.0,
     ];
     skip_types.contains(&control_type)
 }
 
 fn is_container_control_type(control_type: i32) -> bool {
     let container_types = [
-        UIA_TabControlTypeId.0 as i32,
-        UIA_MenuControlTypeId.0 as i32,
-        UIA_MenuBarControlTypeId.0 as i32,
-        UIA_ToolBarControlTypeId.0 as i32,
-        UIA_StatusBarControlTypeId.0 as i32,
-        UIA_HeaderControlTypeId.0 as i32,
-        UIA_PaneControlTypeId.0 as i32,
-        UIA_GroupControlTypeId.0 as i32,
-        UIA_DocumentControlTypeId.0 as i32,
-        UIA_ListControlTypeId.0 as i32,
-        UIA_TableControlTypeId.0 as i32,
-        UIA_TreeControlTypeId.0 as i32,
-        UIA_DataGridControlTypeId.0 as i32,
-        UIA_CustomControlTypeId.0 as i32,
-        UIA_CalendarControlTypeId.0 as i32,
-        UIA_SemanticZoomControlTypeId.0 as i32,
-        UIA_AppBarControlTypeId.0 as i32,
+        UIA_TabControlTypeId.0,
+        UIA_MenuControlTypeId.0,
+        UIA_MenuBarControlTypeId.0,
+        UIA_ToolBarControlTypeId.0,
+        UIA_StatusBarControlTypeId.0,
+        UIA_HeaderControlTypeId.0,
+        UIA_PaneControlTypeId.0,
+        UIA_GroupControlTypeId.0,
+        UIA_DocumentControlTypeId.0,
+        UIA_ListControlTypeId.0,
+        UIA_TableControlTypeId.0,
+        UIA_TreeControlTypeId.0,
+        UIA_DataGridControlTypeId.0,
+        UIA_CustomControlTypeId.0,
+        UIA_CalendarControlTypeId.0,
+        UIA_SemanticZoomControlTypeId.0,
+        UIA_AppBarControlTypeId.0,
     ];
     container_types.contains(&control_type)
 }

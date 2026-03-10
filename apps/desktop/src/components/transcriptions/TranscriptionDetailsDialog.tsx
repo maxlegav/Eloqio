@@ -17,11 +17,11 @@ import { showErrorSnackbar } from "../../actions/app.actions";
 import { ELOQUIO_CONFIG } from "../../enterprise/config";
 import {
   closeTranscriptionDetailsDialog,
-  retranscribeTranscription,
+  openRetranscribeDialog,
 } from "../../actions/transcriptions.actions";
 import { AppState } from "../../state/app.state";
 import { useAppStore } from "../../store";
-import { TranscriptionToneMenu } from "./TranscriptionToneMenu";
+import { TranscriptionTextBlock } from "./TranscriptionTextBlock";
 
 const formatModelSizeLabel = (
   modelSize?: string | null,
@@ -33,52 +33,6 @@ const formatModelSizeLabel = (
   }
 
   return value.charAt(0).toUpperCase() + value.slice(1);
-};
-
-const renderTextBlock = (
-  label: React.ReactNode,
-  value: string | null | undefined,
-  options?: { placeholder?: React.ReactNode; monospace?: boolean },
-) => {
-  const normalized = value?.trim();
-
-  return (
-    <Box>
-      <Typography variant="caption" color="text.secondary">
-        {label}
-      </Typography>
-      {normalized ? (
-        <Box
-          sx={(theme) => ({
-            mt: 0.5,
-            p: 1,
-            borderRadius: 1,
-            bgcolor:
-              theme.vars?.palette.level1 ?? theme.palette.background.default,
-          })}
-        >
-          <Typography
-            variant="body2"
-            sx={{
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              fontFamily: options?.monospace
-                ? '"Roboto Mono", monospace'
-                : undefined,
-            }}
-          >
-            {normalized}
-          </Typography>
-        </Box>
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          {options?.placeholder ?? (
-            <FormattedMessage defaultMessage="Not provided." />
-          )}
-        </Typography>
-      )}
-    </Box>
-  );
 };
 
 const resolveApiKeyLabel = (
@@ -114,42 +68,11 @@ export const TranscriptionDetailsDialog = () => {
     return getRec(state.transcriptionById, transcriptionId);
   });
   const apiKeysById = useAppStore((state) => state.apiKeyById);
-  const intl = useIntl();
-  const [isRetranscribing, setIsRetranscribing] = useState(false);
 
-  const handleClose = useCallback(() => {
-    closeTranscriptionDetailsDialog();
-  }, []);
-
-  const handleRetranscribe = useCallback(
-    async (toneId: string | null) => {
-      if (!transcription?.id) {
-        showErrorSnackbar(
-          intl.formatMessage({
-            defaultMessage: "Unable to load transcription details.",
-          }),
-        );
-        return;
-      }
-
-      try {
-        setIsRetranscribing(true);
-        await retranscribeTranscription({
-          transcriptionId: transcription.id,
-          toneId,
-        });
-      } catch (error) {
-        const fallbackMessage = intl.formatMessage({
-          defaultMessage: "Unable to retranscribe audio snippet.",
-        });
-        const message =
-          error instanceof Error ? error.message : fallbackMessage;
-        showErrorSnackbar(message || fallbackMessage);
-      } finally {
-        setIsRetranscribing(false);
-      }
-    },
-    [intl, transcription?.id],
+  const isRetranscribing = useAppStore((state) =>
+    transcription?.id
+      ? state.transcriptions.retranscribingIds.includes(transcription.id)
+      : false,
   );
 
   const transcriptionModeLabel = useMemo(() => {
@@ -284,7 +207,12 @@ export const TranscriptionDetailsDialog = () => {
   }, [transcription?.warnings]);
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+    <Dialog
+      open={open}
+      onClose={closeTranscriptionDetailsDialog}
+      fullWidth
+      maxWidth="sm"
+    >
       <DialogTitle>
         <FormattedMessage defaultMessage="Transcription Details" />
       </DialogTitle>
@@ -296,34 +224,35 @@ export const TranscriptionDetailsDialog = () => {
                 <FormattedMessage defaultMessage="Outputs" />
               </Typography>
               <Stack spacing={1.25} sx={{ mt: 1 }}>
-                {renderTextBlock(
-                  <FormattedMessage defaultMessage="Raw transcription" />,
-                  rawTranscriptText,
-                  {
-                    placeholder: (
-                      <FormattedMessage defaultMessage="Raw transcript unavailable." />
-                    ),
-                    monospace: true,
-                  },
+                <TranscriptionTextBlock
+                  label={
+                    <FormattedMessage defaultMessage="Raw transcription" />
+                  }
+                  value={rawTranscriptText}
+                  placeholder={
+                    <FormattedMessage defaultMessage="Raw transcript unavailable." />
+                  }
+                  monospace
+                />
+                {sanitizedTranscriptText && (
+                  <TranscriptionTextBlock
+                    label={
+                      <FormattedMessage defaultMessage="After replacements" />
+                    }
+                    value={sanitizedTranscriptText}
+                    monospace
+                  />
                 )}
-                {sanitizedTranscriptText &&
-                  renderTextBlock(
-                    <FormattedMessage defaultMessage="After replacements" />,
-                    sanitizedTranscriptText,
-                    {
-                      monospace: true,
-                    },
-                  )}
-                {renderTextBlock(
-                  <FormattedMessage defaultMessage="Final transcription" />,
-                  finalTranscriptText,
-                  {
-                    placeholder: (
-                      <FormattedMessage defaultMessage="Final transcript unavailable." />
-                    ),
-                    monospace: true,
-                  },
-                )}
+                <TranscriptionTextBlock
+                  label={
+                    <FormattedMessage defaultMessage="Final transcription" />
+                  }
+                  value={finalTranscriptText}
+                  placeholder={
+                    <FormattedMessage defaultMessage="Final transcript unavailable." />
+                  }
+                  monospace
+                />
               </Stack>
             </Box>
 
@@ -437,16 +366,14 @@ export const TranscriptionDetailsDialog = () => {
                     {transcriptionApiKeyLabel}
                   </Typography>
                 </Box>
-                {renderTextBlock(
-                  <FormattedMessage defaultMessage="Prompt" />,
-                  transcriptionPrompt,
-                  {
-                    placeholder: (
-                      <FormattedMessage defaultMessage="No custom prompt applied." />
-                    ),
-                    monospace: true,
-                  },
-                )}
+                <TranscriptionTextBlock
+                  label={<FormattedMessage defaultMessage="Prompt" />}
+                  value={transcriptionPrompt}
+                  placeholder={
+                    <FormattedMessage defaultMessage="No custom prompt applied." />
+                  }
+                  monospace
+                />
               </Stack>
             </Box>
 
@@ -481,16 +408,14 @@ export const TranscriptionDetailsDialog = () => {
                     {postProcessApiKeyLabel}
                   </Typography>
                 </Box>
-                {renderTextBlock(
-                  <FormattedMessage defaultMessage="Prompt" />,
-                  postProcessPrompt,
-                  {
-                    placeholder: (
-                      <FormattedMessage defaultMessage="No LLM post-processing was applied." />
-                    ),
-                    monospace: true,
-                  },
-                )}
+                <TranscriptionTextBlock
+                  label={<FormattedMessage defaultMessage="Prompt" />}
+                  value={postProcessPrompt}
+                  placeholder={
+                    <FormattedMessage defaultMessage="No LLM post-processing was applied." />
+                  }
+                  monospace
+                />
               </Stack>
             </Box>
           </Stack>
@@ -501,19 +426,19 @@ export const TranscriptionDetailsDialog = () => {
         )}
       </DialogContent>
       <DialogActions>
-        <TranscriptionToneMenu onToneSelect={handleRetranscribe}>
-          {({ ref, open }) => (
-            <Button
-              ref={ref}
-              startIcon={<ReplayRoundedIcon />}
-              onClick={open}
-              disabled={isRetranscribing || !transcription}
-            >
-              <FormattedMessage defaultMessage="Retranscribe" />
-            </Button>
-          )}
-        </TranscriptionToneMenu>
-        <Button onClick={handleClose}>
+        <Button
+          startIcon={<ReplayRoundedIcon />}
+          onClick={() => {
+            if (transcription?.id) {
+              closeTranscriptionDetailsDialog();
+              openRetranscribeDialog(transcription.id);
+            }
+          }}
+          disabled={isRetranscribing || !transcription}
+        >
+          <FormattedMessage defaultMessage="Retranscribe" />
+        </Button>
+        <Button onClick={closeTranscriptionDetailsDialog}>
           <FormattedMessage defaultMessage="Close" />
         </Button>
       </DialogActions>

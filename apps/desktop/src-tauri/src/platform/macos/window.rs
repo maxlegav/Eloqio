@@ -14,7 +14,7 @@ pub fn surface_main_window(window: &WebviewWindow) -> Result<(), String> {
         .run_on_main_thread(move || {
             let result = (|| -> Result<(), String> {
                 if let Err(err) = dock::show_dock_icon() {
-                    eprintln!("Failed to show dock icon: {err}");
+                    log::error!("Failed to show dock icon: {err}");
                 }
 
                 let ns_window_ptr = window_for_handle
@@ -34,13 +34,13 @@ pub fn surface_main_window(window: &WebviewWindow) -> Result<(), String> {
                 }
 
                 if let Err(err) = window_for_handle.unminimize() {
-                    eprintln!("Failed to unminimize window: {err}");
+                    log::error!("Failed to unminimize window: {err}");
                 }
                 if let Err(err) = window_for_handle.show() {
-                    eprintln!("Failed to show window: {err}");
+                    log::error!("Failed to show window: {err}");
                 }
                 if let Err(err) = window_for_handle.set_focus() {
-                    eprintln!("Failed to focus window: {err}");
+                    log::error!("Failed to focus window: {err}");
                 }
 
                 Ok(())
@@ -50,11 +50,8 @@ pub fn surface_main_window(window: &WebviewWindow) -> Result<(), String> {
         })
         .map_err(|err| err.to_string())?;
 
-    let result = rx
-        .recv()
-        .map_err(|_| "failed to surface window on main thread".to_string())?;
-
-    result
+    rx.recv()
+        .map_err(|_| "failed to surface window on main thread".to_string())?
 }
 
 pub fn show_overlay_no_focus(window: &WebviewWindow) -> Result<(), String> {
@@ -85,11 +82,8 @@ pub fn show_overlay_no_focus(window: &WebviewWindow) -> Result<(), String> {
         })
         .map_err(|err| err.to_string())?;
 
-    let result = rx
-        .recv()
-        .map_err(|_| "failed to show overlay on main thread".to_string())?;
-
-    result
+    rx.recv()
+        .map_err(|_| "failed to show overlay on main thread".to_string())?
 }
 
 pub fn configure_overlay_non_activating(window: &WebviewWindow) -> Result<(), String> {
@@ -135,7 +129,10 @@ pub fn configure_overlay_non_activating(window: &WebviewWindow) -> Result<(), St
         .map_err(|_| "failed to configure overlay on main thread".to_string())?
 }
 
-pub fn set_overlay_click_through(window: &WebviewWindow, click_through: bool) -> Result<(), String> {
+pub fn set_overlay_click_through(
+    window: &WebviewWindow,
+    click_through: bool,
+) -> Result<(), String> {
     window
         .set_ignore_cursor_events(click_through)
         .map_err(|err| err.to_string())

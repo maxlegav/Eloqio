@@ -4,13 +4,12 @@ on:
   push:
     branches:
       - main
-      - windows-installer
     paths:
       - "apps/desktop/**"
       - "apps/windows-installer/**"
       - "packages/**"
       - "package.json"
-      - "package-lock.json"
+      - "pnpm-lock.yaml"
       - ".github/workflows/release-desktop.yml"
   workflow_dispatch:
     inputs:
@@ -50,8 +49,6 @@ jobs:
       dev_tag_name: ${{ steps.meta.outputs.dev_tag_name }}
       release_notes: ${{ steps.release_notes.outputs.release-notes }}
       release_body: ${{ steps.release_body.outputs.release_body }}
-      gpu_tag_name: ${{ steps.meta.outputs.gpu_tag_name }}
-      gpu_channel_release_tag: ${{ steps.meta.outputs.gpu_channel_release_tag }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -180,14 +177,10 @@ jobs:
             CHANNEL_RELEASE_TAG="desktop-dev"
             RELEASE_FLAVOR="prod"
             RELEASE_SUFFIX="-dev"
-            GPU_TAG_NAME="desktop-gpu-dev-v${VERSION}"
-            GPU_CHANNEL_RELEASE_TAG="desktop-gpu-dev"
           else
             CHANNEL_RELEASE_TAG="desktop-prod"
             RELEASE_FLAVOR="prod"
             RELEASE_SUFFIX=""
-            GPU_TAG_NAME="desktop-gpu-v${VERSION}"
-            GPU_CHANNEL_RELEASE_TAG="desktop-gpu-prod"
           fi
 
           {
@@ -203,8 +196,6 @@ jobs:
             echo "release_notes_from=${RELEASE_NOTES_FROM}"
             echo "release_notes_to=${RELEASE_NOTES_TO}"
             echo "release_notes_from_ref=${RELEASE_NOTES_FROM_REF}"
-            echo "gpu_tag_name=${GPU_TAG_NAME}"
-            echo "gpu_channel_release_tag=${GPU_CHANNEL_RELEASE_TAG}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes
@@ -283,27 +274,6 @@ jobs:
               sha: targetSha,
             });
 
-      - name: Create GPU release tag
-        uses: actions/github-script@v7
-        env:
-          TAG_NAME: ${{ steps.meta.outputs.gpu_tag_name }}
-          TARGET_SHA: ${{ steps.meta.outputs.commit_sha }}
-        with:
-          script: |
-            const tagName = process.env.TAG_NAME;
-            const targetSha = process.env.TARGET_SHA;
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-
-            core.info(`Creating GPU tag ${tagName} at ${targetSha}`);
-
-            await github.rest.git.createRef({
-              owner,
-              repo,
-              ref: `refs/tags/${tagName}`,
-              sha: targetSha,
-            });
-
   build:
     name: Build ${{ matrix.label }}
     needs: metadata
@@ -323,43 +293,25 @@ jobs:
             tauri_platform: macos
             node_platform: darwin
             artifact_name: desktop-macos
-            gpu_variant: false
+            require_gpu_sidecar: false
 
-          - label: Windows (CPU)
+          - label: Windows
             os: windows-latest
             args: ""
             rust_targets: ""
             tauri_platform: windows
             node_platform: win32
             artifact_name: desktop-windows
-            gpu_variant: false
+            require_gpu_sidecar: true
 
-          - label: Windows (GPU)
-            os: windows-latest
-            args: "--features windows-gpu"
-            rust_targets: ""
-            tauri_platform: windows
-            node_platform: win32
-            artifact_name: desktop-windows-gpu
-            gpu_variant: true
-
-          - label: Linux (CPU)
+          - label: Linux
             os: ubuntu-22.04
             args: ""
             rust_targets: ""
             tauri_platform: linux
             node_platform: linux
             artifact_name: desktop-linux
-            gpu_variant: false
-
-          - label: Linux (GPU)
-            os: ubuntu-22.04
-            args: "--features linux-gpu"
-            rust_targets: ""
-            tauri_platform: linux
-            node_platform: linux
-            artifact_name: desktop-linux-gpu
-            gpu_variant: true
+            require_gpu_sidecar: true
     env:
       RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
       RELEASE_ENV: ${{ needs.metadata.outputs.release_env }}
@@ -367,9 +319,9 @@ jobs:
       RELEASE_FLAVOR: ${{ needs.metadata.outputs.release_flavor }}
       FLAVOR: ${{ needs.metadata.outputs.release_flavor }}
       VITE_FLAVOR: ${{ needs.metadata.outputs.release_flavor }}
-      VITE_GPU_BUILD: ${{ matrix.gpu_variant }}
       VOQUILL_BUILD_FLAVOR: ${{ needs.metadata.outputs.release_flavor }}
       VOQUILL_DESKTOP_FLAVOR: ${{ needs.metadata.outputs.release_flavor }}
+      VOQUILL_REQUIRE_GPU_SIDECAR: ${{ matrix.require_gpu_sidecar && 'true' || 'false' }}
       TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
       TAURI_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PRIVATE_KEY_PASSWORD }}
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
@@ -380,17 +332,21 @@ jobs:
       APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+      APPLE_INSTALLER_SIGNING_IDENTITY: ${{ secrets.APPLE_INSTALLER_SIGNING_IDENTITY }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.metadata.outputs.commit_sha }}
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
-          cache-dependency-path: package-lock.json
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Sync Tauri release configuration
         run: node scripts/ci/set-tauri-release-config.mjs
@@ -411,10 +367,10 @@ jobs:
         with:
           workspaces: |
             apps/desktop/src-tauri -> ${{ matrix.os == 'windows-latest' && 'D:\cargo' || 'target' }}
-          key: ${{ matrix.os }}-${{ matrix.gpu_variant && 'gpu' || 'cpu' }}-native-off
+          key: ${{ matrix.os }}-native-off
 
-      - name: Set Windows GPU build environment
-        if: matrix.os == 'windows-latest' && matrix.gpu_variant == true
+      - name: Set Windows sidecar build environment
+        if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
           echo "WHISPER_CMAKE_ARGS=-DGGML_VULKAN=ON -DCMAKE_INSTALL_PREFIX=C:/w" >> $env:GITHUB_ENV
@@ -436,17 +392,11 @@ jobs:
           sudo apt-get install -y \
             build-essential pkg-config cmake \
             libgtk-3-dev "$WEBKIT_PKG" \
-            libayatana-appindicator3-dev librsvg2-dev libasound2-dev libxdo-dev patchelf
-
-      - name: Set Linux CPU build environment
-        if: matrix.os == 'ubuntu-22.04' && matrix.gpu_variant == false
-        shell: bash
-        run: |
-          # Disable -march=native to ensure compatibility with older CPUs (no AVX2 requirement)
-          echo "WHISPER_CMAKE_ARGS=-DGGML_NATIVE=OFF" >> "$GITHUB_ENV"
+            libayatana-appindicator3-dev librsvg2-dev libasound2-dev libxdo-dev patchelf \
+            gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
 
       - name: Install Vulkan SDK (Linux)
-        if: matrix.os == 'ubuntu-22.04' && matrix.gpu_variant == true
+        if: matrix.os == 'ubuntu-22.04'
         shell: bash
         run: |
           set -euo pipefail
@@ -458,26 +408,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y vulkan-sdk
 
-      - name: Set Linux GPU build environment
-        if: matrix.os == 'ubuntu-22.04' && matrix.gpu_variant == true
+      - name: Set Linux sidecar build environment
+        if: matrix.os == 'ubuntu-22.04'
         shell: bash
         run: |
-          # Disable -march=native for broader compatibility, enable Vulkan
+          # Disable -march=native for broader compatibility and enable Vulkan for GPU sidecar builds.
           echo "WHISPER_CMAKE_ARGS=-DGGML_NATIVE=OFF -DGGML_VULKAN=ON" >> "$GITHUB_ENV"
 
       - name: Install dependencies
-        run: npm ci --include=optional
+        run: pnpm install --frozen-lockfile
 
       - name: Install Vulkan SDK (Windows)
-        if: matrix.os == 'windows-latest' && matrix.gpu_variant == true
+        if: matrix.os == 'windows-latest'
         uses: jakoch/install-vulkan-sdk-action@v1
         with:
           version: "1.3.290.0"
           cache: true
           runtime: true
 
-      - name: Install GPU build deps (Windows)
-        if: matrix.os == 'windows-latest' && matrix.gpu_variant == true
+      - name: Install sidecar GPU build deps (Windows)
+        if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
           # 1) LLVM / Clang (for bindgen / whisper-rs-sys)
@@ -540,6 +490,17 @@ jobs:
             exit 1
           }
 
+      - name: Assert Developer ID Installer identity is present
+        if: matrix.os == 'macos-14'
+        run: |
+          set -euo pipefail
+          out="$(security find-identity -v -p basic)"
+          echo "$out"
+          echo "$out" | grep -q "Developer ID Installer" || {
+            echo "No 'Developer ID Installer' identity found. Import a .p12 exported with its private key." >&2
+            exit 1
+          }
+
       - name: Prepare Apple notary API key
         if: matrix.os == 'macos-14'
         run: |
@@ -591,21 +552,12 @@ jobs:
         env:
           MATRIX_ARGS: ${{ matrix.args }}
           RELEASE_ENV: ${{ needs.metadata.outputs.release_env }}
-          GPU_VARIANT: ${{ matrix.gpu_variant }}
         run: |
           set -euo pipefail
-          if [[ "${GPU_VARIANT}" == "true" ]]; then
-            if [[ "${RELEASE_ENV}" == "prod" ]]; then
-              config_file="src-tauri/tauri.gpu.prod.conf.json"
-            else
-              config_file="src-tauri/tauri.gpu.dev.conf.json"
-            fi
+          if [[ "${RELEASE_ENV}" == "prod" ]]; then
+            config_file="src-tauri/tauri.prod.conf.json"
           else
-            if [[ "${RELEASE_ENV}" == "prod" ]]; then
-              config_file="src-tauri/tauri.prod.conf.json"
-            else
-              config_file="src-tauri/tauri.dev.conf.json"
-            fi
+            config_file="src-tauri/tauri.dev.conf.json"
           fi
           config_flag="--config ${config_file}"
           matrix_args="${MATRIX_ARGS}"
@@ -626,13 +578,32 @@ jobs:
           echo "args=${combined_args}" >> "$GITHUB_OUTPUT"
           echo "config=${config_file}" >> "$GITHUB_OUTPUT"
 
+      - name: Set Linux package and binary names
+        if: matrix.os == 'ubuntu-22.04'
+        shell: bash
+        env:
+          RELEASE_ENV: ${{ needs.metadata.outputs.release_env }}
+        run: |
+          set -euo pipefail
+          if [[ "${RELEASE_ENV}" == "prod" ]]; then
+            config_file="apps/desktop/src-tauri/tauri.prod.conf.json"
+            pkg_name="voquill-desktop"
+          else
+            config_file="apps/desktop/src-tauri/tauri.dev.conf.json"
+            pkg_name="voquill-desktop-dev"
+          fi
+          tmp=$(mktemp)
+          jq --arg name "$pkg_name" '.productName = $name | .mainBinaryName = $name' "$config_file" > "$tmp"
+          mv "$tmp" "$config_file"
+          echo "Set productName and mainBinaryName to '${pkg_name}' in ${config_file}"
+
       - name: Turbo build desktop workspace
         env:
           MACOSX_DEPLOYMENT_TARGET: "13.3"
           CMAKE_OSX_DEPLOYMENT_TARGET: "13.3"
           TAURI_PLATFORM: ${{ matrix.tauri_platform }}
           VOQUILL_DESKTOP_PLATFORM: ${{ matrix.node_platform }}
-        run: npm run build -- --filter=desktop...
+        run: pnpm exec turbo run build --filter=desktop...
 
       - name: Build and publish
         uses: tauri-apps/tauri-action@v0
@@ -653,14 +624,65 @@ jobs:
           VOQUILL_GOOGLE_CLIENT_SECRET: ${{ steps.google-oauth.outputs.client_secret }}
         with:
           projectPath: apps/desktop
-          tauriScript: npm run --workspace desktop tauri
+          tauriScript: pnpm --filter desktop run tauri
           args: ${{ steps.tauri-cli-args.outputs.args }}
-          tagName: ${{ matrix.gpu_variant == true && needs.metadata.outputs.gpu_tag_name || needs.metadata.outputs.tag_name }}
-          releaseName: ${{ matrix.gpu_variant == true && format('desktop-gpu{0} v{1}', needs.metadata.outputs.release_suffix, needs.metadata.outputs.version) || format('desktop{0} v{1}', needs.metadata.outputs.release_suffix, needs.metadata.outputs.version) }}
+          tagName: ${{ needs.metadata.outputs.tag_name }}
+          releaseName: ${{ format('desktop{0} v{1}', needs.metadata.outputs.release_suffix, needs.metadata.outputs.version) }}
           releaseBody: ${{ needs.metadata.outputs.release_body }}
           releaseDraft: false
           prerelease: ${{ needs.metadata.outputs.release_env != 'prod' }}
           includeUpdaterJson: true
+
+      - name: Build, sign, notarize, and upload macOS PKG
+        if: matrix.os == 'macos-14'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.metadata.outputs.tag_name }}
+          RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+          APPLE_INSTALLER_SIGNING_IDENTITY: ${{ env.APPLE_INSTALLER_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${APPLE_INSTALLER_SIGNING_IDENTITY}" ]]; then
+            echo "Missing APPLE_INSTALLER_SIGNING_IDENTITY secret." >&2
+            exit 1
+          fi
+
+          bundle_dir="apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos"
+          app_bundle_path="$(find "${bundle_dir}" -maxdepth 1 -type d -name '*.app' | head -n 1)"
+          if [[ -z "${app_bundle_path}" ]]; then
+            echo "No .app bundle found under ${bundle_dir}" >&2
+            ls -la "${bundle_dir}" || true
+            exit 1
+          fi
+
+          pkg_name="Voquill_${RELEASE_VERSION}_universal.pkg"
+          unsigned_pkg="Voquill_unsigned.pkg"
+
+          pkgbuild \
+            --component "${app_bundle_path}" \
+            --install-location /Applications \
+            --identifier com.voquill.desktop \
+            --version "${RELEASE_VERSION}" \
+            "${unsigned_pkg}"
+
+          productsign \
+            --sign "${APPLE_INSTALLER_SIGNING_IDENTITY}" \
+            "${unsigned_pkg}" \
+            "${pkg_name}"
+
+          pkgutil --check-signature "${pkg_name}"
+
+          xcrun notarytool submit "${pkg_name}" \
+            --key "${GITHUB_WORKSPACE}/AuthKey.p8" \
+            --key-id "${APPLE_API_KEY_ID}" \
+            --issuer "${APPLE_API_ISSUER}" \
+            --wait
+
+          xcrun stapler staple "${pkg_name}"
+
+          gh release upload "${RELEASE_TAG}" "${pkg_name}" --clobber
 
       - name: Azure login for code signing
         if: matrix.os == 'windows-latest'
@@ -739,8 +761,8 @@ jobs:
 
           Write-Host "Building portable Windows installer..."
           Set-Location apps/windows-installer
-          npm install
-          npm run tauri:build
+          pnpm install
+          pnpm run tauri:build
 
       - name: Sign Windows portable installer
         if: matrix.os == 'windows-latest'
@@ -778,7 +800,7 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ matrix.gpu_variant == true && needs.metadata.outputs.gpu_tag_name || needs.metadata.outputs.tag_name }}
+          RELEASE_TAG: ${{ needs.metadata.outputs.tag_name }}
         run: |
           $installerExe = "D:\cargo\release\voquill-installer.exe"
 
@@ -807,25 +829,16 @@ jobs:
         run: gh run rerun ${{ github.run_id }} --failed
 
   update-channel:
-    name: Update channel release (${{ matrix.variant }})
+    name: Update channel release
     needs: [metadata, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    strategy:
-      matrix:
-        include:
-          - variant: cpu
-            release_tag: ${{ needs.metadata.outputs.tag_name }}
-            channel_tag: ${{ needs.metadata.outputs.channel_release_tag }}
-          - variant: gpu
-            release_tag: ${{ needs.metadata.outputs.gpu_tag_name }}
-            channel_tag: ${{ needs.metadata.outputs.gpu_channel_release_tag }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_REPO: ${{ github.repository }}
-      CHANNEL_TAG: ${{ matrix.channel_tag }}
-      RELEASE_TAG: ${{ matrix.release_tag }}
+      CHANNEL_TAG: ${{ needs.metadata.outputs.channel_release_tag }}
+      RELEASE_TAG: ${{ needs.metadata.outputs.tag_name }}
     steps:
       - name: Download latest.json from release
         run: |
@@ -854,3 +867,78 @@ jobs:
         run: |
           set -euo pipefail
           gh release upload "$CHANNEL_TAG" dist/latest.json --clobber
+
+  publish-apt:
+    name: Publish to APT repository
+    needs: [metadata, build]
+    runs-on: ubuntu-latest
+    if: contains(fromJSON('["desktop-linux"]'), 'desktop-linux')
+    permissions:
+      contents: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_TAG: ${{ needs.metadata.outputs.tag_name }}
+      RELEASE_ENV: ${{ needs.metadata.outputs.release_env }}
+    steps:
+      - name: Download .deb from release
+        run: |
+          set -euo pipefail
+          mkdir -p debs
+          gh release download "$RELEASE_TAG" --pattern "*.deb" --dir debs --repo "$GITHUB_REPOSITORY"
+          deb_file="$(ls debs/*.deb | head -n 1)"
+          if [[ -z "${deb_file}" ]]; then
+            echo "No .deb file found in release ${RELEASE_TAG}" >&2
+            exit 1
+          fi
+          echo "Found .deb: ${deb_file}"
+
+          # Add Section field if missing (required by reprepro)
+          mkdir -p repack
+          dpkg-deb -R "${deb_file}" repack/
+          if ! grep -q "^Section:" repack/DEBIAN/control; then
+            echo "Section: utils" >> repack/DEBIAN/control
+            dpkg-deb -b repack "${deb_file}"
+          fi
+          rm -rf repack
+
+          echo "DEB_FILE=${deb_file}" >> "$GITHUB_ENV"
+
+      - name: Clone APT repository
+        run: |
+          set -euo pipefail
+          git clone "https://x-access-token:${{ secrets.APT_REPO_TOKEN }}@github.com/voquill/apt.git" apt-repo
+
+      - name: Import GPG key
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          echo "${APT_GPG_PRIVATE_KEY}" | gpg --batch --import
+
+      - name: Install reprepro
+        run: sudo apt-get update && sudo apt-get install -y reprepro
+
+      - name: Add package to repository
+        run: |
+          set -euo pipefail
+          cd apt-repo
+
+          if [[ "${RELEASE_ENV}" == "prod" ]]; then
+            codename="stable"
+          else
+            codename="dev"
+          fi
+
+          echo "Adding ${DEB_FILE} to codename '${codename}'"
+          reprepro --basedir . includedeb "${codename}" "../${DEB_FILE}"
+
+      - name: Push updated repository
+        run: |
+          set -euo pipefail
+          cd apt-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && { echo "No changes to commit"; exit 0; }
+          git commit -m "Update packages from ${RELEASE_TAG}"
+          git push

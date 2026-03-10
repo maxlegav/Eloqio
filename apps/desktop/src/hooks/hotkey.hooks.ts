@@ -5,17 +5,24 @@ import { getHotkeyCombosForAction } from "../utils/keyboard.utils";
 
 type HoldAction = { actionName: string; controller: ActivationController };
 
-export const useHotkeyHold = (args: HoldAction) => {
+type HotkeyHoldArgs = HoldAction & { isDisabled?: boolean };
+
+export const useHotkeyHold = (args: HotkeyHoldArgs) => {
   const actions = useMemo(
     () => [{ actionName: args.actionName, controller: args.controller }],
     [args.actionName, args.controller],
   );
-  useHotkeyHoldMany({ actions });
+  useHotkeyHoldMany({ actions, isDisabled: args.isDisabled });
 };
 
-export const useHotkeyHoldMany = (args: { actions: HoldAction[] }) => {
+export const useHotkeyHoldMany = (args: {
+  actions: HoldAction[];
+  isDisabled?: boolean;
+}) => {
   const keysHeld = useAppStore((s) => s.keysHeld);
+  const isRecordingHotkey = useAppStore((state) => state.isRecordingHotkey);
   const hotkeyById = useAppStore((state) => state.hotkeyById);
+  const isDisabled = Boolean(args.isDisabled || isRecordingHotkey);
   const combosByAction = useMemo(() => {
     const map: Record<string, string[][]> = {};
     const state = getAppState();
@@ -60,6 +67,15 @@ export const useHotkeyHoldMany = (args: { actions: HoldAction[] }) => {
     for (const action of args.actions) {
       const availableCombos = combosByAction[action.actionName] ?? [];
       const wasPressed = wasPressedRef.current.get(action.actionName) ?? false;
+      const isPressed = availableCombos.some((combo) =>
+        matchesCombo(keysHeld, combo),
+      );
+
+      if (isDisabled) {
+        wasPressedRef.current.set(action.actionName, isPressed);
+        action.controller.reset();
+        continue;
+      }
 
       if (
         action.controller.isActive &&
@@ -75,10 +91,6 @@ export const useHotkeyHoldMany = (args: { actions: HoldAction[] }) => {
         continue;
       }
 
-      const isPressed = availableCombos.some((combo) =>
-        matchesCombo(keysHeld, combo),
-      );
-
       if (isPressed && !wasPressed) {
         if (action.controller.shouldIgnoreActivation) {
           wasPressedRef.current.set(action.actionName, isPressed);
@@ -93,7 +105,7 @@ export const useHotkeyHoldMany = (args: { actions: HoldAction[] }) => {
 
       wasPressedRef.current.set(action.actionName, isPressed);
     }
-  }, [keysHeld, combosByAction, args.actions]);
+  }, [keysHeld, combosByAction, args.actions, isDisabled]);
 };
 
 export const useHotkeyFire = (args: {
@@ -102,48 +114,110 @@ export const useHotkeyFire = (args: {
   onFire?: () => void;
 }) => {
   const keysHeld = useAppStore((state) => state.keysHeld);
+  const isRecordingHotkey = useAppStore((state) => state.isRecordingHotkey);
+  const isDisabled = Boolean(args.isDisabled || isRecordingHotkey);
   const availableCombos = useAppStore((state) =>
     getHotkeyCombosForAction(state, args.actionName),
   );
 
   const previousKeysHeldRef = useRef<string[]>([]);
+  const comboStateRef = useRef<Map<string, { contaminated: boolean }>>(
+    new Map(),
+  );
+  const wasDisabledRef = useRef(false);
 
   useEffect(() => {
-    if (args.isDisabled) {
+    if (isDisabled) {
       previousKeysHeldRef.current = keysHeld;
+      comboStateRef.current.clear();
+      wasDisabledRef.current = true;
       return;
     }
+    const wasDisabled = wasDisabledRef.current;
+    wasDisabledRef.current = false;
 
-    const previousKeysHeld = previousKeysHeldRef.current;
+    const normalize = (key: string) => key.toLowerCase();
+    const toNormalizedSet = (keys: string[]) =>
+      new Set(keys.map((key) => normalize(key)));
+    const getComboId = (requiredKeys: Set<string>) =>
+      Array.from(requiredKeys).sort().join("+");
 
-    // Check if any combo was just pressed (transition from not pressed to pressed)
-    const wasComboPressed = availableCombos.some((combo) => {
-      if (combo.length === 0) return false;
+    const previousSet = toNormalizedSet(previousKeysHeldRef.current);
+    const currentSet = toNormalizedSet(keysHeld);
+    const activeComboIds = new Set<string>();
 
-      const normalize = (key: string) => key.toLowerCase();
-      const normalizedCombo = combo.map(normalize);
-      const normalizedKeysHeld = keysHeld.map(normalize);
-      const normalizedPreviousKeysHeld = previousKeysHeld.map(normalize);
+    let shouldFire = false;
+    for (const combo of availableCombos) {
+      if (combo.length === 0) {
+        continue;
+      }
 
-      // Check if all keys in the combo are NOW held
-      const allKeysNowHeld = normalizedCombo.every((key) =>
-        normalizedKeysHeld.includes(key),
+      const requiredSet = toNormalizedSet(combo);
+      if (requiredSet.size === 0) {
+        continue;
+      }
+
+      const comboId = getComboId(requiredSet);
+      activeComboIds.add(comboId);
+
+      const comboState = comboStateRef.current.get(comboId) ?? {
+        contaminated: false,
+      };
+
+      const previousIncludesAll = Array.from(requiredSet).every((key) =>
+        previousSet.has(key),
+      );
+      const currentIncludesAll = Array.from(requiredSet).every((key) =>
+        currentSet.has(key),
       );
 
-      // Check if NOT all keys were held previously
-      const notAllKeysPreviouslyHeld = !normalizedCombo.every((key) =>
-        normalizedPreviousKeysHeld.includes(key),
-      );
+      const previousExact =
+        previousIncludesAll && previousSet.size === requiredSet.size;
+      const currentExact =
+        currentIncludesAll && currentSet.size === requiredSet.size;
 
-      // Fire only on the transition from not-pressed to pressed
-      return allKeysNowHeld && notAllKeysPreviouslyHeld;
-    });
+      if (wasDisabled && currentIncludesAll) {
+        comboState.contaminated = true;
+      }
 
-    if (wasComboPressed) {
+      if (!previousIncludesAll && currentIncludesAll) {
+        comboState.contaminated = false;
+      }
+
+      if (currentIncludesAll && !currentExact) {
+        comboState.contaminated = true;
+      }
+
+      if (
+        previousExact &&
+        !currentExact &&
+        !currentIncludesAll &&
+        !comboState.contaminated
+      ) {
+        shouldFire = true;
+      }
+
+      if (!currentIncludesAll) {
+        comboState.contaminated = false;
+      }
+
+      comboStateRef.current.set(comboId, comboState);
+
+      if (shouldFire) {
+        break;
+      }
+    }
+
+    for (const comboId of comboStateRef.current.keys()) {
+      if (!activeComboIds.has(comboId)) {
+        comboStateRef.current.delete(comboId);
+      }
+    }
+
+    if (shouldFire) {
       args.onFire?.();
     }
 
-    // Update the ref for the next comparison
     previousKeysHeldRef.current = keysHeld;
-  }, [keysHeld, availableCombos, args]);
+  }, [keysHeld, availableCombos, isDisabled, args.onFire]);
 };

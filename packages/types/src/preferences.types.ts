@@ -29,7 +29,7 @@ export type UserPreferences = {
   incognitoModeEnabled: boolean;
   incognitoModeIncludeInStats: boolean;
   dictationPillVisibility: DictationPillVisibility;
-  useNewBackend: boolean;
+  realtimeOutputEnabled: boolean;
 
   // deprecated
   isEnterprise: boolean;

@@ -12,7 +12,12 @@ use windows::Win32::UI::WindowsAndMessaging::{
 fn set_layered_window_attributes(hwnd: HWND, alpha: u8) {
     use windows::Win32::UI::WindowsAndMessaging::SetLayeredWindowAttributes;
     unsafe {
-        let _ = SetLayeredWindowAttributes(hwnd, windows::Win32::Foundation::COLORREF(0), alpha, LWA_ALPHA);
+        let _ = SetLayeredWindowAttributes(
+            hwnd,
+            windows::Win32::Foundation::COLORREF(0),
+            alpha,
+            LWA_ALPHA,
+        );
     }
 }
 
@@ -28,10 +33,10 @@ pub fn surface_main_window(window: &WebviewWindow) -> Result<(), String> {
                 let hwnd: HWND = window_for_handle.hwnd().map_err(|err| err.to_string())?;
 
                 unsafe {
-                    ShowWindow(hwnd, SW_RESTORE);
-                    ShowWindow(hwnd, SW_SHOW);
-                    SetForegroundWindow(hwnd);
-                    SetWindowPos(
+                    let _ = ShowWindow(hwnd, SW_RESTORE);
+                    let _ = ShowWindow(hwnd, SW_SHOW);
+                    let _ = SetForegroundWindow(hwnd);
+                    let _ = SetWindowPos(
                         hwnd,
                         Some(HWND_TOPMOST),
                         0,
@@ -40,7 +45,7 @@ pub fn surface_main_window(window: &WebviewWindow) -> Result<(), String> {
                         0,
                         SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW,
                     );
-                    SetWindowPos(
+                    let _ = SetWindowPos(
                         hwnd,
                         Some(HWND_NOTOPMOST),
                         0,
@@ -49,17 +54,17 @@ pub fn surface_main_window(window: &WebviewWindow) -> Result<(), String> {
                         0,
                         SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW,
                     );
-                    BringWindowToTop(hwnd);
+                    let _ = BringWindowToTop(hwnd);
                 }
 
                 if let Err(err) = window_for_handle.unminimize() {
-                    eprintln!("Failed to unminimize window: {err}");
+                    log::error!("Failed to unminimize window: {err}");
                 }
                 if let Err(err) = window_for_handle.show() {
-                    eprintln!("Failed to show window: {err}");
+                    log::error!("Failed to show window: {err}");
                 }
                 if let Err(err) = window_for_handle.set_focus() {
-                    eprintln!("Failed to focus window: {err}");
+                    log::error!("Failed to focus window: {err}");
                 }
 
                 Ok(())
@@ -69,11 +74,8 @@ pub fn surface_main_window(window: &WebviewWindow) -> Result<(), String> {
         })
         .map_err(|err| err.to_string())?;
 
-    let result = rx
-        .recv()
-        .map_err(|_| "failed to surface window on main thread".to_string())?;
-
-    result
+    rx.recv()
+        .map_err(|_| "failed to surface window on main thread".to_string())?
 }
 
 pub fn show_overlay_no_focus(window: &WebviewWindow) -> Result<(), String> {
@@ -86,8 +88,8 @@ pub fn show_overlay_no_focus(window: &WebviewWindow) -> Result<(), String> {
                 let hwnd: HWND = window_for_handle.hwnd().map_err(|err| err.to_string())?;
 
                 unsafe {
-                    ShowWindow(hwnd, SW_SHOWNOACTIVATE);
-                    SetWindowPos(
+                    let _ = ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+                    let _ = SetWindowPos(
                         hwnd,
                         Some(HWND_TOPMOST),
                         0,
@@ -105,14 +107,14 @@ pub fn show_overlay_no_focus(window: &WebviewWindow) -> Result<(), String> {
         })
         .map_err(|err| err.to_string())?;
 
-    let result = rx
-        .recv()
-        .map_err(|_| "failed to show overlay on main thread".to_string())?;
-
-    result
+    rx.recv()
+        .map_err(|_| "failed to show overlay on main thread".to_string())?
 }
 
-pub fn set_overlay_click_through(window: &WebviewWindow, click_through: bool) -> Result<(), String> {
+pub fn set_overlay_click_through(
+    window: &WebviewWindow,
+    click_through: bool,
+) -> Result<(), String> {
     if !click_through {
         save_foreground_window();
     }
@@ -141,7 +143,7 @@ pub fn set_overlay_click_through(window: &WebviewWindow, click_through: bool) ->
                             set_layered_window_attributes(hwnd, 255);
                         }
 
-                        SetWindowPos(
+                        let _ = SetWindowPos(
                             hwnd,
                             Some(HWND_TOPMOST),
                             0,
@@ -179,7 +181,7 @@ pub fn configure_overlay_non_activating(window: &WebviewWindow) -> Result<(), St
 
                     if new_style != current_style {
                         SetWindowLongW(hwnd, GWL_EXSTYLE, new_style);
-                        SetWindowPos(
+                        let _ = SetWindowPos(
                             hwnd,
                             Some(HWND_TOPMOST),
                             0,

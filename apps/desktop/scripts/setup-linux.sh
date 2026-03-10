@@ -145,8 +145,8 @@ fi
 
 if [[ "${VOQUILL_ENABLE_GPU:-}" == "1" ]]; then
   install_gpu_prereqs
-  echo "[INFO] Rebuild the desktop app with the cargo feature 'linux-gpu' to enable Vulkan acceleration."
+  echo "[INFO] Vulkan dependencies installed. Desktop builds now include the GPU sidecar automatically."
 fi
 
 echo "[OK] Linux dependencies installed. You can now run the desktop app with:"
-echo "   npm run dev --workspace apps/desktop"
+echo "   pnpm --filter desktop run dev"

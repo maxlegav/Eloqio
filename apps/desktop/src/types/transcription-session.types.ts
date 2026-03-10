@@ -10,7 +10,6 @@ export type StopRecordingResponse = {
 
 export type TranscriptionSessionResult = {
   rawTranscript: string | null;
-  processedTranscript?: string | null;
   metadata: TranscribeAudioMetadata;
   postProcessMetadata?: PostProcessMetadata;
   warnings: string[];
@@ -21,6 +20,8 @@ export type TranscriptionSessionFinalizeOptions = {
   a11yInfo?: unknown;
 };
 
+export type InterimResultCallback = (segment: string) => void;
+
 export interface TranscriptionSession {
   onRecordingStart(sampleRate: number): Promise<void>;
   finalize(
@@ -28,4 +29,6 @@ export interface TranscriptionSession {
     options?: TranscriptionSessionFinalizeOptions,
   ): Promise<TranscriptionSessionResult>;
   cleanup(): void;
+  supportsStreaming(): boolean;
+  setInterimResultCallback(callback: InterimResultCallback): void;
 }

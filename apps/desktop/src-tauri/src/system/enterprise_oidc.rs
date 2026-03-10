@@ -1,6 +1,6 @@
-use rand::{rngs::OsRng, RngCore};
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
+use rand::{rngs::OsRng, RngCore};
 use serde::Serialize;
 use std::{
     collections::HashMap,
@@ -54,7 +54,7 @@ pub async fn start_enterprise_oidc_flow(
         .opener()
         .open_url(auth_url, Option::<String>::None)
     {
-        eprintln!("Failed to open browser for enterprise OIDC flow: {err}");
+        log::error!("Failed to open browser for enterprise OIDC flow: {err}");
     }
 
     let payload = server_handle
@@ -139,8 +139,8 @@ fn handle_request(
         .ok_or_else(|| "Malformed OIDC request line".to_string())?;
 
     let full_url = format!("http://localhost{raw_path}");
-    let parsed = Url::parse(&full_url)
-        .map_err(|err| format!("Failed to parse OIDC callback URL: {err}"))?;
+    let parsed =
+        Url::parse(&full_url).map_err(|err| format!("Failed to parse OIDC callback URL: {err}"))?;
 
     if parsed.path() != CALLBACK_PATH {
         respond(stream, 404, "Not found")?;

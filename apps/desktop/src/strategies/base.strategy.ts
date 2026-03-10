@@ -3,12 +3,11 @@ import type { OverlayPhase } from "../types/overlay.types";
 import type {
   HandleTranscriptParams,
   HandleTranscriptResult,
-  StrategyContext,
   StrategyValidationError,
 } from "../types/strategy.types";
 
 export abstract class BaseStrategy {
-  constructor(protected context: StrategyContext) {}
+  constructor() {}
 
   abstract validateAvailability(): Nullable<StrategyValidationError>;
   abstract onBeforeStart(): Promise<void>;
@@ -19,4 +18,6 @@ export abstract class BaseStrategy {
   abstract shouldStoreTranscript(): boolean;
 
   abstract cleanup(): Promise<void>;
+
+  handleInterimSegment(_segment: string): void {}
 }

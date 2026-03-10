@@ -5,7 +5,8 @@
   "bundle": {
     "linux": {
       "deb": {
-        "depends": ["libxdo3", "libvulkan1"]
+        "conflicts": ["voquill"],
+        "replaces": ["voquill"]
       }
     }
   },

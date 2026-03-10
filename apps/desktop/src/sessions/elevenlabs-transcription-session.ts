@@ -42,7 +42,9 @@ const getElevenLabsToken = async (apiKey: string): Promise<string> => {
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "Unknown error");
-    throw new Error(`Failed to get ElevenLabs token: ${response.status} ${errorText}`);
+    throw new Error(
+      `Failed to get ElevenLabs token: ${response.status} ${errorText}`,
+    );
   }
 
   const data = await response.json();
@@ -52,6 +54,7 @@ const getElevenLabsToken = async (apiKey: string): Promise<string> => {
 const startElevenLabsStreaming = async (
   apiKey: string,
   inputSampleRate: number,
+  onInterimResult?: (segment: string) => void,
 ): Promise<ElevenLabsStreamingSession> => {
   const sampleRate = SUPPORTED_SAMPLE_RATES.includes(inputSampleRate)
     ? inputSampleRate
@@ -93,7 +96,9 @@ const startElevenLabsStreaming = async (
     const getText = () => {
       return (
         finalTranscript +
-        (partialTranscript ? (finalTranscript ? " " : "") + partialTranscript : "")
+        (partialTranscript
+          ? (finalTranscript ? " " : "") + partialTranscript
+          : "")
       );
     };
 
@@ -230,8 +235,8 @@ const startElevenLabsStreaming = async (
         if (ws && ws.readyState === WebSocket.OPEN) {
           finalizeTimeout = setTimeout(() => {
             console.log(
-              "[ElevenLabs WebSocket] Timeout waiting for final transcript:",
-              getText(),
+              "[ElevenLabs WebSocket] Timeout waiting for final transcript, length:",
+              getText().length,
             );
             cleanup();
             if (finalizeResolver) {
@@ -253,8 +258,8 @@ const startElevenLabsStreaming = async (
       }
       if (finalizeResolver) {
         console.log(
-          "[ElevenLabs WebSocket] Completing finalize with transcript:",
-          getText(),
+          "[ElevenLabs WebSocket] Completing finalize with transcript length:",
+          getText().length,
         );
         cleanup();
         finalizeResolver(getText());
@@ -264,14 +269,19 @@ const startElevenLabsStreaming = async (
 
     const audioFormat = `pcm_${sampleRate}`;
     const wsUrl = `${ELEVENLABS_WS_URL}?token=${encodeURIComponent(token)}&model_id=scribe_v2_realtime&audio_format=${audioFormat}&commit_strategy=vad`;
-    console.log("[ElevenLabs WebSocket] Connecting to:", wsUrl.replace(token, "***"));
+    console.log(
+      "[ElevenLabs WebSocket] Connecting to:",
+      wsUrl.replace(token, "***"),
+    );
     ws = new WebSocket(wsUrl);
 
     ws.onopen = async () => {
       console.log("[ElevenLabs WebSocket] Connected");
 
       try {
-        console.log("[ElevenLabs WebSocket] Setting up audio_chunk listener...");
+        console.log(
+          "[ElevenLabs WebSocket] Setting up audio_chunk listener...",
+        );
         unlisten = await listen<{ samples: number[] }>(
           "audio_chunk",
           (event) => {
@@ -324,13 +334,16 @@ const startElevenLabsStreaming = async (
         );
 
         if (messageType === "committed_transcript") {
-          finalTranscript +=
-            (finalTranscript ? " " : "") + (data.text || "");
+          const committedText = data.text || "";
+          finalTranscript += (finalTranscript ? " " : "") + committedText;
           partialTranscript = "";
           console.log(
-            "[ElevenLabs WebSocket] Committed transcript received:",
-            finalTranscript.substring(0, 100),
+            "[ElevenLabs WebSocket] Committed transcript received, length:",
+            finalTranscript.length,
           );
+          if (onInterimResult && committedText) {
+            onInterimResult(committedText);
+          }
           if (isFinalized) {
             completeFinalize();
           }
@@ -365,15 +378,28 @@ const startElevenLabsStreaming = async (
 export class ElevenLabsTranscriptionSession implements TranscriptionSession {
   private session: ElevenLabsStreamingSession | null = null;
   private apiKey: string;
+  private interimCallback: ((segment: string) => void) | null = null;
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
   }
 
+  supportsStreaming(): boolean {
+    return true;
+  }
+
+  setInterimResultCallback(callback: (segment: string) => void): void {
+    this.interimCallback = callback;
+  }
+
   async onRecordingStart(sampleRate: number): Promise<void> {
     try {
       console.log("[ElevenLabs] Starting streaming session...");
-      this.session = await startElevenLabsStreaming(this.apiKey, sampleRate);
+      this.session = await startElevenLabsStreaming(
+        this.apiKey,
+        sampleRate,
+        this.interimCallback ?? undefined,
+      );
       console.log("[ElevenLabs] Streaming session started successfully");
     } catch (error) {
       console.error("[ElevenLabs] Failed to start streaming:", error);
@@ -401,12 +427,10 @@ export class ElevenLabsTranscriptionSession implements TranscriptionSession {
       const durationMs = Math.round(performance.now() - finalizeStart);
 
       console.log("[ElevenLabs] Transcript timing:", { durationMs });
-      console.log("[ElevenLabs] Received transcript:", {
-        length: transcript?.length ?? 0,
-        preview:
-          transcript?.substring(0, 50) +
-          (transcript && transcript.length > 50 ? "..." : ""),
-      });
+      console.log(
+        "[ElevenLabs] Received transcript, length:",
+        transcript?.length ?? 0,
+      );
 
       return {
         rawTranscript: transcript || null,

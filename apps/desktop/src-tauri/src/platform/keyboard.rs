@@ -14,12 +14,12 @@ use tauri::{AppHandle, Emitter, EventTarget};
 use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
 
+#[cfg(target_os = "linux")]
+pub use super::linux::keyboard::run_listener_process;
 #[cfg(target_os = "macos")]
 pub use super::macos::keyboard::run_listener_process;
 #[cfg(target_os = "windows")]
 pub use super::windows::keyboard::run_listener_process;
-#[cfg(target_os = "linux")]
-pub use super::linux::keyboard::run_listener_process;
 
 type PressedKeys = Arc<Mutex<HashSet<String>>>;
 
@@ -37,7 +37,7 @@ impl KeyEventEmitter {
 
     fn handle_event(&self, event: &Event) {
         if debug_keys_enabled() {
-            eprintln!("[keys] event: {:?}", event.event_type);
+            log::debug!("event: {:?}", event.event_type);
         }
 
         match event.event_type {
@@ -84,7 +84,7 @@ impl KeyEventEmitter {
 
     fn emit(&self, payload: KeysHeldPayload) {
         if let Err(err) = self.app.emit_to(EventTarget::any(), EVT_KEYS_HELD, payload) {
-            eprintln!("Failed to emit keys-held event: {err}");
+            log::error!("Failed to emit keys-held event: {err}");
         }
     }
 }
@@ -126,7 +126,7 @@ pub fn sync_combos(combos: Vec<Vec<String>>) {
         if let Some(stdin) = guard.as_mut() {
             if let Ok(json) = serde_json::to_string(&combos) {
                 if let Err(err) = writeln!(stdin, "{json}") {
-                    eprintln!("Failed to write combos to child stdin: {err}");
+                    log::error!("Failed to write combos to child stdin: {err}");
                 }
                 let _ = stdin.flush();
             }
@@ -141,7 +141,7 @@ pub fn start_key_listener(app: &AppHandle) -> Result<(), String> {
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
 
-    eprintln!("Starting keyboard listener");
+    log::info!("Starting keyboard listener");
     let emitter = Arc::new(KeyEventEmitter::new(app));
     let (join_handle, running) = start_external_listener(emitter.clone())?;
     *state = Some(ListenerHandle {
@@ -165,7 +165,7 @@ pub fn stop_key_listener() -> Result<(), String> {
         handle.running.store(false, Ordering::SeqCst);
         stop_listener_child();
         if let Err(err) = handle.join_handle.join() {
-            eprintln!("Keyboard listener thread join failed: {err:?}");
+            log::error!("Keyboard listener thread join failed: {err:?}");
         }
         handle.emitter.reset();
     }
@@ -230,7 +230,7 @@ fn run_listener_thread(
 ) {
     while running.load(Ordering::SeqCst) {
         if let Err(err) = ensure_listener_child(port) {
-            eprintln!("Keyboard listener child error: {err}");
+            log::error!("Keyboard listener child error: {err}");
             thread::sleep(Duration::from_millis(500));
             continue;
         }
@@ -240,14 +240,14 @@ fn run_listener_thread(
                 let result = pump_stream(stream, emitter.clone());
                 emitter.reset();
                 if let Err(err) = result {
-                    eprintln!("Keyboard listener stream error: {err}");
+                    log::error!("Keyboard listener stream error: {err}");
                 }
             }
             Err(err) if err.kind() == ErrorKind::WouldBlock => {
                 thread::sleep(Duration::from_millis(50));
             }
             Err(err) => {
-                eprintln!("Keyboard listener accept error: {err}");
+                log::error!("Keyboard listener accept error: {err}");
                 thread::sleep(Duration::from_millis(200));
             }
         }
@@ -296,7 +296,7 @@ fn ensure_listener_child(port: u16) -> Result<(), String> {
                     return Ok(());
                 }
                 Err(err) => {
-                    eprintln!("Keyboard listener child wait failed: {err}");
+                    log::warn!("Keyboard listener child wait failed: {err}");
                     *guard = None;
                     true
                 }
@@ -330,7 +330,7 @@ fn ensure_listener_child(port: u16) -> Result<(), String> {
                 if let Some(stdin) = guard.as_mut() {
                     if let Ok(json) = serde_json::to_string(&combos) {
                         if let Err(err) = writeln!(stdin, "{json}") {
-                            eprintln!("Failed to send initial combos to child: {err}");
+                            log::error!("Failed to send initial combos to child: {err}");
                         }
                         let _ = stdin.flush();
                     }
@@ -359,10 +359,10 @@ fn stop_listener_child() {
         .unwrap_or_else(|poisoned| poisoned.into_inner());
     if let Some(mut child) = guard.take() {
         if let Err(err) = child.kill() {
-            eprintln!("Failed to kill keyboard listener child: {err}");
+            log::error!("Failed to kill keyboard listener child: {err}");
         }
         if let Err(err) = child.wait() {
-            eprintln!("Failed to wait for keyboard listener child: {err}");
+            log::error!("Failed to wait for keyboard listener child: {err}");
         }
     }
 }
@@ -388,8 +388,8 @@ fn pump_stream(stream: TcpStream, emitter: Arc<KeyEventEmitter>) -> Result<(), S
                 #[cfg(target_os = "windows")]
                 if payload.scan_code == 0 {
                     if debug_keys_enabled() {
-                        eprintln!(
-                            "[keys] Ignoring injected event (scan_code=0): {:?} {}",
+                        log::debug!(
+                            "Ignoring injected event (scan_code=0): {:?} {}",
                             payload.kind, payload.key_label
                         );
                     }
@@ -400,7 +400,7 @@ fn pump_stream(stream: TcpStream, emitter: Arc<KeyEventEmitter>) -> Result<(), S
                     emitter.handle_event(&event);
                 }
             }
-            Err(err) => eprintln!("Malformed keyboard event payload: {err}: {line}"),
+            Err(err) => log::warn!("Malformed keyboard event payload: {err}: {line}"),
         }
     }
 
@@ -485,23 +485,132 @@ pub(crate) fn send_event_to_tcp(
     }
 }
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 pub(crate) fn matches_any_combo(pressed: &HashSet<String>, combos: &[Vec<String>]) -> bool {
+    let pressed_normalized: HashSet<String> =
+        pressed.iter().map(|key| key.to_ascii_lowercase()).collect();
+
     for combo in combos {
         if combo.is_empty() {
             continue;
         }
-        let all_match = combo
-            .iter()
-            .all(|k| pressed.iter().any(|p| p.eq_ignore_ascii_case(k)));
-        if all_match {
+
+        let combo_normalized: HashSet<String> =
+            combo.iter().map(|key| key.to_ascii_lowercase()).collect();
+
+        if combo_normalized.is_empty() {
+            continue;
+        }
+
+        if pressed_normalized == combo_normalized {
             return true;
         }
     }
     false
 }
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+fn is_modifier_like_key_label(key_label: &str) -> bool {
+    let normalized = key_label.to_ascii_lowercase();
+    normalized.starts_with("meta")
+        || normalized.starts_with("control")
+        || normalized.starts_with("shift")
+        || normalized.starts_with("alt")
+        || normalized.starts_with("option")
+        || normalized.starts_with("function")
+}
+
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+fn matches_modifier_only_combo(pressed: &HashSet<String>, combos: &[Vec<String>]) -> bool {
+    let pressed_normalized: HashSet<String> =
+        pressed.iter().map(|key| key.to_ascii_lowercase()).collect();
+
+    for combo in combos {
+        if combo.is_empty() || !combo.iter().all(|key| is_modifier_like_key_label(key)) {
+            continue;
+        }
+
+        let combo_normalized: HashSet<String> =
+            combo.iter().map(|key| key.to_ascii_lowercase()).collect();
+
+        if combo_normalized.is_empty() {
+            continue;
+        }
+
+        if pressed_normalized == combo_normalized {
+            return true;
+        }
+    }
+
+    false
+}
+
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[derive(Debug, Default)]
+pub(crate) struct GrabHotkeyState {
+    pub pressed_keys: HashSet<String>,
+    pub suppressed_keys: HashSet<String>,
+    pub combo_active: bool,
+}
+
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum GrabDecision {
+    PassThrough,
+    Suppress,
+}
+
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+pub(crate) fn update_grab_hotkey_state(
+    state: &mut GrabHotkeyState,
+    key_label: &str,
+    is_press: bool,
+    combos: &[Vec<String>],
+) -> GrabDecision {
+    if is_press {
+        state.pressed_keys.insert(key_label.to_string());
+        let has_match = matches_any_combo(&state.pressed_keys, combos);
+        let has_modifier_only_match = matches_modifier_only_combo(&state.pressed_keys, combos);
+
+        if !state.combo_active && has_match {
+            state.combo_active = true;
+            if has_modifier_only_match {
+                return GrabDecision::PassThrough;
+            }
+            state.suppressed_keys.insert(key_label.to_string());
+            return GrabDecision::Suppress;
+        }
+
+        if state.combo_active {
+            if state.suppressed_keys.is_empty() {
+                if has_match && !has_modifier_only_match {
+                    state.suppressed_keys.insert(key_label.to_string());
+                    return GrabDecision::Suppress;
+                }
+                return GrabDecision::PassThrough;
+            }
+            state.suppressed_keys.insert(key_label.to_string());
+            return GrabDecision::Suppress;
+        }
+
+        return GrabDecision::PassThrough;
+    }
+
+    state.pressed_keys.remove(key_label);
+    if state.pressed_keys.is_empty() {
+        state.combo_active = false;
+    }
+
+    if state.suppressed_keys.remove(key_label) {
+        GrabDecision::Suppress
+    } else {
+        GrabDecision::PassThrough
+    }
+}
+
 pub(crate) struct ListenerContext {
     pub writer: Arc<Mutex<BufWriter<TcpStream>>>,
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub combos: Arc<Mutex<Vec<Vec<String>>>>,
 }
 
@@ -518,34 +627,43 @@ pub(crate) fn setup_listener_process() -> Result<ListenerContext, String> {
         .map_err(|err| format!("failed to configure listener socket: {err}"))?;
 
     let writer = Arc::new(Mutex::new(BufWriter::new(stream)));
+
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     let combos: Arc<Mutex<Vec<Vec<String>>>> = Arc::new(Mutex::new(Vec::new()));
 
-    let combos_for_stdin = combos.clone();
-    thread::spawn(move || {
-        let stdin = std::io::stdin();
-        let reader = BufReader::new(stdin.lock());
-        for line in reader.lines() {
-            let line = match line {
-                Ok(l) => l,
-                Err(_) => break,
-            };
-            if line.trim().is_empty() {
-                continue;
-            }
-            match serde_json::from_str::<Vec<Vec<String>>>(&line) {
-                Ok(new_combos) => {
-                    if let Ok(mut guard) = combos_for_stdin.lock() {
-                        *guard = new_combos;
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    {
+        let combos_for_stdin = combos.clone();
+        thread::spawn(move || {
+            let stdin = std::io::stdin();
+            let reader = BufReader::new(stdin.lock());
+            for line in reader.lines() {
+                let line = match line {
+                    Ok(l) => l,
+                    Err(_) => break,
+                };
+                if line.trim().is_empty() {
+                    continue;
+                }
+                match serde_json::from_str::<Vec<Vec<String>>>(&line) {
+                    Ok(new_combos) => {
+                        if let Ok(mut guard) = combos_for_stdin.lock() {
+                            *guard = new_combos;
+                        }
+                    }
+                    Err(err) => {
+                        eprintln!("Keyboard child: malformed combo update: {err}");
                     }
                 }
-                Err(err) => {
-                    eprintln!("Keyboard child: malformed combo update: {err}");
-                }
             }
-        }
-    });
+        });
+    }
 
-    Ok(ListenerContext { writer, combos })
+    Ok(ListenerContext {
+        writer,
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        combos,
+    })
 }
 
 pub(crate) fn run_listen_loop(
@@ -574,4 +692,140 @@ pub(crate) fn run_listen_loop(
         }
     })
     .map_err(|err| format!("keyboard listener error: {err:?}"))
+}
+
+#[cfg(all(test, any(target_os = "macos", target_os = "windows")))]
+mod tests {
+    use super::{matches_any_combo, update_grab_hotkey_state, GrabDecision, GrabHotkeyState};
+    use std::collections::HashSet;
+
+    fn set(keys: &[&str]) -> HashSet<String> {
+        keys.iter().map(|key| key.to_string()).collect()
+    }
+
+    #[test]
+    fn matches_with_exact_key_set() {
+        let pressed = set(&["MetaLeft"]);
+        let combos = vec![vec!["MetaLeft".to_string()]];
+        assert!(matches_any_combo(&pressed, &combos));
+    }
+
+    #[test]
+    fn does_not_match_when_extra_keys_are_pressed() {
+        let pressed = set(&["MetaLeft", "KeyZ"]);
+        let combos = vec![vec!["MetaLeft".to_string()]];
+        assert!(!matches_any_combo(&pressed, &combos));
+    }
+
+    #[test]
+    fn matches_case_insensitively() {
+        let pressed = set(&["metaleft", "keyz"]);
+        let combos = vec![vec!["MetaLeft".to_string(), "KeyZ".to_string()]];
+        assert!(matches_any_combo(&pressed, &combos));
+    }
+
+    #[test]
+    fn only_suppresses_release_for_keys_suppressed_on_press() {
+        let combos = vec![vec!["ControlLeft".to_string(), "MetaLeft".to_string()]];
+        let mut state = GrabHotkeyState::default();
+
+        assert_eq!(
+            update_grab_hotkey_state(&mut state, "ControlLeft", true, &combos),
+            GrabDecision::PassThrough
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut state, "MetaLeft", true, &combos),
+            GrabDecision::PassThrough
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut state, "MetaLeft", false, &combos),
+            GrabDecision::PassThrough
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut state, "ControlLeft", false, &combos),
+            GrabDecision::PassThrough
+        );
+    }
+
+    #[test]
+    fn suppresses_press_and_release_for_single_key_combo() {
+        let combos = vec![vec!["Escape".to_string()]];
+        let mut state = GrabHotkeyState::default();
+
+        assert_eq!(
+            update_grab_hotkey_state(&mut state, "Escape", true, &combos),
+            GrabDecision::Suppress
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut state, "Escape", false, &combos),
+            GrabDecision::Suppress
+        );
+    }
+
+    #[test]
+    fn modifier_only_combo_is_not_suppressed_regardless_of_key_order() {
+        let combos = vec![vec!["ControlLeft".to_string(), "MetaLeft".to_string()]];
+
+        let mut control_then_meta = GrabHotkeyState::default();
+        assert_eq!(
+            update_grab_hotkey_state(&mut control_then_meta, "ControlLeft", true, &combos),
+            GrabDecision::PassThrough
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut control_then_meta, "MetaLeft", true, &combos),
+            GrabDecision::PassThrough
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut control_then_meta, "MetaLeft", false, &combos),
+            GrabDecision::PassThrough
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut control_then_meta, "ControlLeft", false, &combos),
+            GrabDecision::PassThrough
+        );
+
+        let mut meta_then_control = GrabHotkeyState::default();
+        assert_eq!(
+            update_grab_hotkey_state(&mut meta_then_control, "MetaLeft", true, &combos),
+            GrabDecision::PassThrough
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut meta_then_control, "ControlLeft", true, &combos),
+            GrabDecision::PassThrough
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut meta_then_control, "ControlLeft", false, &combos),
+            GrabDecision::PassThrough
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut meta_then_control, "MetaLeft", false, &combos),
+            GrabDecision::PassThrough
+        );
+    }
+
+    #[test]
+    fn escalates_from_modifier_only_combo_to_non_modifier_combo() {
+        let combos = vec![
+            vec!["Function".to_string()],
+            vec!["Function".to_string(), "KeyZ".to_string()],
+        ];
+        let mut state = GrabHotkeyState::default();
+
+        assert_eq!(
+            update_grab_hotkey_state(&mut state, "Function", true, &combos),
+            GrabDecision::PassThrough
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut state, "KeyZ", true, &combos),
+            GrabDecision::Suppress
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut state, "KeyZ", false, &combos),
+            GrabDecision::Suppress
+        );
+        assert_eq!(
+            update_grab_hotkey_state(&mut state, "Function", false, &combos),
+            GrabDecision::PassThrough
+        );
+    }
 }

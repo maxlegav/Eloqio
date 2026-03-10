@@ -2,13 +2,14 @@ import { getRec } from "@repo/utilities";
 import { getAppState } from "../store";
 import { TranscriptionSession } from "../types/transcription-session.types";
 import { getIsEnterpriseEnabled } from "../utils/enterprise.utils";
-import { getIsNewBackendEnabled } from "../utils/new-server.utils";
+import { getIsEmulators } from "../utils/env.utils";
 import { TranscriptionPrefs } from "../utils/user.utils";
 import { AssemblyAITranscriptionSession } from "./assemblyai-transcription-session";
 import { AzureTranscriptionSession } from "./azure-transcription-session";
 import { BatchTranscriptionSession } from "./batch-transcription-session";
 import { DeepgramTranscriptionSession } from "./deepgram-transcription-session";
 import { ElevenLabsTranscriptionSession } from "./elevenlabs-transcription-session";
+import { LocalTranscriptionSession } from "./local-transcription-session";
 import { NewServerTranscriptionSession } from "./new-server-transcription-session";
 
 export { AssemblyAITranscriptionSession } from "./assemblyai-transcription-session";
@@ -16,6 +17,7 @@ export { AzureTranscriptionSession } from "./azure-transcription-session";
 export { BatchTranscriptionSession } from "./batch-transcription-session";
 export { DeepgramTranscriptionSession } from "./deepgram-transcription-session";
 export { ElevenLabsTranscriptionSession } from "./elevenlabs-transcription-session";
+export { LocalTranscriptionSession } from "./local-transcription-session";
 export { NewServerTranscriptionSession } from "./new-server-transcription-session";
 
 export const createTranscriptionSession = (
@@ -40,10 +42,14 @@ export const createTranscriptionSession = (
 
   if (
     prefs.mode === "cloud" &&
-    getIsNewBackendEnabled() &&
-    !getIsEnterpriseEnabled()
+    !getIsEnterpriseEnabled() &&
+    !getIsEmulators()
   ) {
     return new NewServerTranscriptionSession();
+  }
+
+  if (prefs.mode === "local") {
+    return new LocalTranscriptionSession();
   }
 
   return new BatchTranscriptionSession();

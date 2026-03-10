@@ -2,6 +2,14 @@
   "productName": "Eloquio GPU (dev)",
   "identifier": "com.eloquio.app.gpu.dev",
   "mainBinaryName": "Eloquio GPU (dev)",
+  "bundle": {
+    "linux": {
+      "deb": {
+        "conflicts": ["eloquio-dev"],
+        "replaces": ["eloquio-dev"]
+      }
+    }
+  },
   "plugins": {
     "updater": {
       "endpoints": [

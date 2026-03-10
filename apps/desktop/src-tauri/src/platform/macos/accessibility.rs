@@ -50,7 +50,7 @@ extern "C" {
 pub fn get_text_field_info() -> TextFieldInfo {
     catch_unwind(AssertUnwindSafe(|| unsafe { get_text_field_info_impl() }))
         .unwrap_or_else(|_| {
-            eprintln!("[macos::accessibility] get_text_field_info panicked, returning empty");
+            log::error!("get_text_field_info panicked, returning empty");
             empty_text_field_info()
         })
 }
@@ -59,7 +59,7 @@ pub fn get_text_field_info() -> TextFieldInfo {
 pub fn get_screen_context() -> ScreenContextInfo {
     catch_unwind(AssertUnwindSafe(|| unsafe { get_screen_context_impl() }))
         .unwrap_or_else(|_| {
-            eprintln!("[macos::accessibility] get_screen_context panicked, returning empty");
+            log::error!("get_screen_context panicked, returning empty");
             ScreenContextInfo { screen_context: None }
         })
 }
@@ -89,8 +89,10 @@ unsafe fn get_text_field_info_impl() -> TextFieldInfo {
 
     let text_content = get_string_attribute(focused_element, ax_value.as_concrete_TypeRef());
 
-    let (cursor_position, selection_length) =
-        get_range_attribute(focused_element, ax_selected_text_range.as_concrete_TypeRef());
+    let (cursor_position, selection_length) = get_range_attribute(
+        focused_element,
+        ax_selected_text_range.as_concrete_TypeRef(),
+    );
 
     CFRelease(focused_element);
 
@@ -106,7 +108,9 @@ unsafe fn get_screen_context_impl() -> ScreenContextInfo {
 
     let system_wide = AXUIElementCreateSystemWide();
     if system_wide.is_null() {
-        return ScreenContextInfo { screen_context: None };
+        return ScreenContextInfo {
+            screen_context: None,
+        };
     }
 
     let mut focused_element: CFTypeRef = ptr::null();
@@ -119,11 +123,17 @@ unsafe fn get_screen_context_impl() -> ScreenContextInfo {
     CFRelease(system_wide);
 
     if result != AX_ERROR_SUCCESS || focused_element.is_null() {
-        return ScreenContextInfo { screen_context: None };
+        return ScreenContextInfo {
+            screen_context: None,
+        };
     }
 
     let context = gather_context_outward(focused_element);
-    let screen_context = if context.is_empty() { None } else { Some(context) };
+    let screen_context = if context.is_empty() {
+        None
+    } else {
+        Some(context)
+    };
 
     CFRelease(focused_element);
 
@@ -226,10 +236,8 @@ unsafe fn extract_text_from_element(
     }
 
     // Get value for elements that safely support it
-    let value_safe_roles = [
-        "AXStaticText", "AXLink", "AXCell", "AXMenuItem",
-    ];
-    if value_safe_roles.iter().any(|&r| role == r) {
+    let value_safe_roles = ["AXStaticText", "AXLink", "AXCell", "AXMenuItem"];
+    if value_safe_roles.contains(&role) {
         if let Some(value) = get_string_attribute(element, ax_value) {
             let t = value.trim();
             if !t.is_empty() && t.len() < 500 {
@@ -259,6 +267,7 @@ unsafe fn extract_text_from_element(
     texts
 }
 
+#[allow(clippy::too_many_arguments)]
 unsafe fn extract_text_from_web_area(
     element: CFTypeRef,
     ax_role: CFStringRef,
@@ -328,6 +337,7 @@ unsafe fn extract_text_from_web_area(
     texts
 }
 
+#[allow(clippy::too_many_arguments)]
 unsafe fn extract_text_recursive(
     element: CFTypeRef,
     ax_role: CFStringRef,
@@ -385,9 +395,18 @@ unsafe fn extract_text_recursive(
 
     // Recurse into children for container types
     let container_roles = [
-        "AXGroup", "AXCell", "AXRow", "AXList", "AXTable",
-        "AXOutline", "AXSection", "AXForm", "AXArticle",
-        "AXLandmarkMain", "AXLandmarkNavigation", "AXLandmarkSearch",
+        "AXGroup",
+        "AXCell",
+        "AXRow",
+        "AXList",
+        "AXTable",
+        "AXOutline",
+        "AXSection",
+        "AXForm",
+        "AXArticle",
+        "AXLandmarkMain",
+        "AXLandmarkNavigation",
+        "AXLandmarkSearch",
     ];
     if container_roles.iter().any(|&c| role == c) {
         let mut children_ref: CFTypeRef = ptr::null();
@@ -604,11 +623,11 @@ unsafe fn gather_screen_context(element: CFTypeRef, depth: usize) -> String {
     // Skip certain roles that are known to be problematic or not useful
     if let Some(ref r) = role {
         let skip_roles = [
-            "AXWebArea",      // Web content can be huge and problematic
-            "AXScrollArea",   // Just a container
-            "AXSplitGroup",   // Just a container
-            "AXLayoutArea",   // Just a container
-            "AXUnknown",      // Unknown elements
+            "AXWebArea",    // Web content can be huge and problematic
+            "AXScrollArea", // Just a container
+            "AXSplitGroup", // Just a container
+            "AXLayoutArea", // Just a container
+            "AXUnknown",    // Unknown elements
         ];
         if skip_roles.iter().any(|&sr| r == sr) {
             return String::new();
@@ -743,9 +762,7 @@ unsafe fn insert_text_at_cursor_impl(text: &str) -> Result<(), String> {
 
     if set_result != AX_ERROR_SUCCESS {
         CFRelease(focused_element);
-        return Err(format!(
-            "AXUIElementSetAttributeValue failed: {set_result}"
-        ));
+        return Err(format!("AXUIElementSetAttributeValue failed: {set_result}"));
     }
 
     // Verify: if we can read the value and it didn't change, the insert silently failed
@@ -764,7 +781,7 @@ unsafe fn insert_text_at_cursor_impl(text: &str) -> Result<(), String> {
 pub fn get_selected_text() -> Option<String> {
     catch_unwind(AssertUnwindSafe(|| unsafe { get_selected_text_impl() }))
         .unwrap_or_else(|_| {
-            eprintln!("[macos::accessibility] get_selected_text panicked, returning None");
+            log::error!("get_selected_text panicked, returning None");
             None
         })
 }
@@ -791,7 +808,8 @@ unsafe fn get_selected_text_impl() -> Option<String> {
         return None;
     }
 
-    let selected_text = get_string_attribute(focused_element, ax_selected_text.as_concrete_TypeRef());
+    let selected_text =
+        get_string_attribute(focused_element, ax_selected_text.as_concrete_TypeRef());
 
     CFRelease(focused_element);
 

@@ -4,11 +4,13 @@
 mod flavor_env;
 
 /// Initialize X11 threading support on Linux.
+///
 /// This MUST be called before any X11 operations from any thread.
 /// The application uses multiple threads that interact with X11:
 /// - Tauri/GTK for the GUI
-/// - rdev for global keyboard listening  
+/// - rdev for global keyboard listening
 /// - CPAL/ALSA for audio capture
+///
 /// Without XInitThreads, concurrent X11 access causes crashes.
 #[cfg(target_os = "linux")]
 fn init_x11_threads() {
@@ -70,7 +72,9 @@ fn main() {
                     || err_str.contains("GPU")
                 {
                     eprintln!("[startup] This appears to be a GPU/graphics driver issue.");
-                    eprintln!("[startup] Try setting VOQUILL_WHISPER_DISABLE_GPU=1 to disable GPU acceleration.");
+                    eprintln!(
+                        "[startup] Local transcription can fall back to CPU from Settings if GPU acceleration is unstable."
+                    );
                 }
                 std::process::exit(1);
             }
@@ -84,7 +88,9 @@ fn main() {
             } else {
                 eprintln!("[startup] Panic message: <unknown>");
             }
-            eprintln!("[startup] If this is a GPU-related crash, try setting VOQUILL_WHISPER_DISABLE_GPU=1");
+            eprintln!(
+                "[startup] If this is GPU-related, switch local transcription to CPU in Settings."
+            );
             std::process::exit(1);
         }
     }

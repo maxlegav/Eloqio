@@ -15,7 +15,10 @@ import { getAppState, produceAppState } from "../store";
 import { PostProcessingMode, TranscriptionMode } from "../types/ai.types";
 import { AudioSamples } from "../types/audio.types";
 import { StopRecordingResponse } from "../types/transcription-session.types";
-import { unwrapNestedLlmResponse } from "../utils/ai.utils";
+import {
+  extractJsonFromMarkdown,
+  unwrapNestedLlmResponse,
+} from "../utils/ai.utils";
 import { createId } from "../utils/id.utils";
 import {
   coerceToDictationLanguage,
@@ -143,7 +146,10 @@ export const transcribeAudio = async ({
     `Transcription complete in ${Math.round(transcribeDuration)}ms (${rawTranscript.length} chars, mode=${transcribeOutput.metadata?.transcriptionMode ?? "unknown"})`,
   );
 
-  metadata.modelSize = state.settings.aiTranscription.modelSize || null;
+  metadata.modelSize =
+    transcribeOutput.metadata?.modelSize ||
+    state.settings.aiTranscription.modelSize ||
+    null;
   metadata.inferenceDevice = transcribeOutput.metadata?.inferenceDevice || null;
   metadata.transcriptionDurationMs = Math.round(transcribeDuration);
   metadata.transcriptionPrompt = transcriptionPrompt;
@@ -239,11 +245,12 @@ export const postProcessTranscript = async ({
     getLogger().info(
       `Post-processing complete in ${Math.round(postprocessDuration)}ms`,
     );
-    getLogger().verbose("LLM raw output:", genOutput.text);
+    getLogger().verbose("LLM raw output length:", genOutput.text.length);
 
     try {
+      const extractedJson = extractJsonFromMarkdown(genOutput.text);
       const parsed = unwrapNestedLlmResponse(
-        JSON.parse(genOutput.text),
+        JSON.parse(extractedJson),
         "processedTranscription",
       );
 
@@ -254,17 +261,20 @@ export const postProcessTranscript = async ({
           validationResult.error.message,
         );
         warnings.push(
-          `Post-processing response validation failed: ${validationResult.error.message}\n\nResponse was: ${genOutput.text}`,
+          `Post-processing response validation failed: ${validationResult.error.message}`,
         );
       } else {
         processedTranscript =
           validationResult.data.processedTranscription.trim();
-        getLogger().verbose("Processed transcript:", processedTranscript);
+        getLogger().verbose(
+          "Processed transcript length:",
+          processedTranscript.length,
+        );
       }
     } catch (e) {
       getLogger().error("Failed to parse post-processing response:", e);
       warnings.push(
-        `Failed to parse post-processing response: ${(e as Error).message}\n\nResponse was: ${genOutput.text}`,
+        `Failed to parse post-processing response: ${(e as Error).message}`,
       );
     }
 

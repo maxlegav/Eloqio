@@ -14,6 +14,7 @@ type AssemblyAIStreamingSession = {
 const startAssemblyAIStreaming = async (
   apiKey: string,
   sampleRate: number,
+  onInterimResult?: (segment: string) => void,
 ): Promise<AssemblyAIStreamingSession> => {
   console.log("[AssemblyAI WebSocket] Starting with sample rate:", sampleRate);
   const MIN_CHUNK_DURATION_MS = 50;
@@ -167,8 +168,8 @@ const startAssemblyAIStreaming = async (
           // Wait a bit for final transcript
           const timeout = setTimeout(() => {
             console.log(
-              "[AssemblyAI WebSocket] Timeout reached, finalizing with transcript:",
-              getText(),
+              "[AssemblyAI WebSocket] Timeout reached, finalizing with transcript length:",
+              getText().length,
             );
             cleanup();
             resolveFinalize(getText());
@@ -183,8 +184,8 @@ const startAssemblyAIStreaming = async (
               originalOnClose.call(currentWs, {} as CloseEvent);
             cleanup();
             console.log(
-              "[AssemblyAI WebSocket] WebSocket closed, finalizing with transcript:",
-              getText(),
+              "[AssemblyAI WebSocket] WebSocket closed, finalizing with transcript length:",
+              getText().length,
             );
             resolveFinalize(getText());
           };
@@ -272,12 +273,15 @@ const startAssemblyAIStreaming = async (
 
         if (data.type === "Turn" && data.end_of_turn) {
           // Final formatted transcript
-          finalTranscript +=
-            (finalTranscript ? " " : "") + (data.transcript || "");
+          const turnTranscript = data.transcript || "";
+          finalTranscript += (finalTranscript ? " " : "") + turnTranscript;
           console.log(
-            "[AssemblyAI WebSocket] Final formatted transcript received:",
-            finalTranscript.substring(0, 100),
+            "[AssemblyAI WebSocket] Final formatted transcript received, length:",
+            finalTranscript.length,
           );
+          if (onInterimResult && turnTranscript) {
+            onInterimResult(turnTranscript);
+          }
           if (currentTurn === data.turn_order) {
             extra = "";
           }
@@ -312,15 +316,28 @@ const startAssemblyAIStreaming = async (
 export class AssemblyAITranscriptionSession implements TranscriptionSession {
   private session: AssemblyAIStreamingSession | null = null;
   private apiKey: string;
+  private interimCallback: ((segment: string) => void) | null = null;
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
   }
 
+  supportsStreaming(): boolean {
+    return true;
+  }
+
+  setInterimResultCallback(callback: (segment: string) => void): void {
+    this.interimCallback = callback;
+  }
+
   async onRecordingStart(sampleRate: number): Promise<void> {
     try {
       console.log("[AssemblyAI] Starting streaming session...");
-      this.session = await startAssemblyAIStreaming(this.apiKey, sampleRate);
+      this.session = await startAssemblyAIStreaming(
+        this.apiKey,
+        sampleRate,
+        this.interimCallback ?? undefined,
+      );
       console.log("[AssemblyAI] Streaming session started successfully");
     } catch (error) {
       console.error("[AssemblyAI] Failed to start streaming:", error);
@@ -349,12 +366,10 @@ export class AssemblyAITranscriptionSession implements TranscriptionSession {
       const durationMs = Math.round(performance.now() - finalizeStart);
 
       console.log("[AssemblyAI] Transcript timing:", { durationMs });
-      console.log("[AssemblyAI] Received transcript:", {
-        length: transcript?.length ?? 0,
-        preview:
-          transcript?.substring(0, 50) +
-          (transcript && transcript.length > 50 ? "..." : ""),
-      });
+      console.log(
+        "[AssemblyAI] Received transcript, length:",
+        transcript?.length ?? 0,
+      );
 
       return {
         rawTranscript: transcript || null,

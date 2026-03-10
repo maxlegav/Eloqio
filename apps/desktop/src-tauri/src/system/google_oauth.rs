@@ -81,7 +81,7 @@ pub async fn start_google_oauth(
         .opener()
         .open_url(auth_url, Option::<String>::None)
     {
-        eprintln!("Failed to open browser for Google OAuth flow: {err}");
+        log::error!("Failed to open browser for Google OAuth flow: {err}");
     }
 
     let authorization_code = server_handle
@@ -354,7 +354,7 @@ async fn verify_id_token(
     validation.set_audience(&[config.client_id.as_str()]);
 
     let token_data = decode::<GoogleIdTokenClaims>(id_token, &decoding_key, &validation)
-        .map_err(|err| format!("Failed to verify Google ID token; {}", err.to_string()))?;
+        .map_err(|err| format!("Failed to verify Google ID token; {err}"))?;
 
     let claims = token_data.claims;
 

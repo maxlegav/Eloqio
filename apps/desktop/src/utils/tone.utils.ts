@@ -5,34 +5,31 @@ import { AppState } from "../state/app.state";
 import { getEffectiveStylingMode } from "./feature.utils";
 import { getMyUser, getMyUserPreferences } from "./user.utils";
 
-export const CLEAN_TONE_ID = "default";
+export const POLISHED_TONE_ID = "default";
 export const VERBATIM_TONE_ID = "verbatim";
 export const EMAIL_TONE_ID = "email";
 export const CHAT_TONE_ID = "chat";
 export const FORMAL_TONE_ID = "formal";
-export const DISABLED_TONE_ID = "disabled";
 
 export const getDefaultSystemTones = (): Tone[] => {
   const intl = getIntl();
 
   return [
     {
-      id: CLEAN_TONE_ID,
+      id: POLISHED_TONE_ID,
       name: intl.formatMessage({
         defaultMessage: "Polished",
       }),
       promptTemplate: `
-- You are a transcript polisher. Convert raw spoken text into clean written text that the speaker would have written themselves.
-- Remove filler words, stutters, false starts, and self-corrections. Keep only the final intended version of each thought. Interjections and exclamations that express emotion or reaction are not filler words — keep them.
-- Convert spoken symbol cues to actual symbols: "hashtag [word]" or "pound sign [word]" becomes "#[word]", and "at [name]" or "at sign [name]" becomes "@[name]".
-- Put backticks around code terms like filenames, function names, and code snippets.
-- Format bulletted lists when the user speaks items in a list format
-- Fix grammar, spelling, and punctuation.
-- The words "new line", "newline", and "new paragraph" are formatting commands, not content. Replace them with an actual line break character. Never write the words "new line" or "newline" literally in the output.
-- Convert spoken emoji descriptions into their actual emoji characters.
-- Preserve the speaker's exact word choice, tone, sentence structure, and level of formality. Do not substitute, rephrase, or elevate their language.
-- Do NOT add, infer, or hallucinate any information the speaker did not explicitly say.
-- Output ONLY the polished text with no commentary.
+- Rewrite the transcript into clean, readable text that the speaker would reasonably have written.
+- Keep the speaker's original meaning, tone, phrasing, and level of formality.
+- Do not make it more polite, more formal, or more professional than the original.
+- Remove filler, false starts, repeated words, stutters, and obvious transcription mistakes.
+- When the speaker corrects themselves, keep the corrected version and remove the earlier one.
+- Smooth out awkward sentence breaks and punctuation when they come from transcription rather than intent.
+- Keep wording that feels characteristic of the speaker, even if it is a little informal or imperfect.
+- Format the result naturally as written text, including paragraphs, line breaks, bullet points when the content is clearly list-like or reads more naturally as a list, punctuation, emojis, and special forms like code terms, file names, emails, links, hashtags, newlines, and parentheses when clearly intended.
+- Output only the cleaned transcription.
       `.trim(),
       isSystem: true,
       createdAt: 0,
@@ -43,15 +40,9 @@ export const getDefaultSystemTones = (): Tone[] => {
       name: intl.formatMessage({
         defaultMessage: "Verbatim",
       }),
-      promptTemplate: `
-- Produce a near-exact transcription that preserves the speaker's voice
-- Add punctuation, capitalization, and paragraph breaks for readability
-- Format bulletted lists when the user speaks items in a list format
-- Remove filler words (um, uh, like, you know), false starts, repeated words, and content the speaker later corrected
-- Do NOT fix grammar, do NOT restructure sentences, and do NOT change the speaker's word choices or phrasing
-- Convert spoken symbol cues to actual symbols: "hashtag [word]" or "pound sign [word]" becomes "#[word]", and "at [name]" or "at sign [name]" becomes "@[name]"
-- Put backticks around code terms like filenames, function names, and code snippets
-      `.trim(),
+      shouldDisablePostProcessing: true,
+      promptTemplate:
+        "Do not apply any post-processing to the transcription. Keep everything exactly as you said it.",
       isSystem: true,
       createdAt: 0,
       sortOrder: 1,
@@ -62,15 +53,17 @@ export const getDefaultSystemTones = (): Tone[] => {
         defaultMessage: "Email",
       }),
       promptTemplate: `
-- Format the output as an email: greeting line, body paragraphs, and a sign-off with the speaker's name. No subject line. Use newlines where appropriate.
-- The greeting and sign-off should match the tone of what the speaker said. If they said their own greeting or sign-off, use their words. If they didn't, add a simple one that fits the tone.
-- When the speaker lists multiple items, format them as a bulleted or numbered list.
-- Format bulletted lists when the user speaks items in a list format
-- Fix grammar, spelling, and punctuation.
-- Preserve the speaker's word choice and tone. Do not rephrase, elevate, or formalize their language beyond what they said.
-- Remove filler words, stutters, false starts, and self-corrections. Keep only the final intended version of each thought. Interjections and exclamations that express emotion or reaction are not filler words — keep them.
-- Every idea and sentiment the speaker expressed must appear in the output. If the speaker said something blunt, awkward, or impolite, keep it. Your job is to format their words, not filter them.
-- Do NOT add information, details, reasons, or context the speaker did not say.
+- Rewrite the transcript as a clean, natural email body the speaker would reasonably have written.
+- Preserve the speaker's meaning, tone, phrasing, and formality.
+- Do not make it more polite, formal, or professional than the original.
+- Remove filler, stutters, false starts, repeated words, and obvious transcription errors.
+- Treat self-corrections as replacements: keep the later corrected wording, not the abandoned wording.
+- Fix punctuation, sentence breaks, and formatting so it reads naturally as an email.
+- Keep informal or distinctive wording when it seems intentional.
+- Use email structure only where implied by the transcript, including greeting, paragraph breaks, closing, sign-off, and bullet points when the content is clearly list-like or reads more naturally as a list.
+- Do not generate or include an email subject line.
+- Preserve special written forms like email addresses, links, newlines, emojis, file names, and code terms when intended.
+- Output only the cleaned email body.
       `.trim(),
       isSystem: true,
       createdAt: 0,
@@ -86,8 +79,9 @@ export const getDefaultSystemTones = (): Tone[] => {
 - Keep it casual and concise. Do not over-structure or over-punctuate.
 - Format bulletted lists when the user speaks items in a list format
 - Fix spelling and basic punctuation. Do not add exclamation points unless the speaker's tone clearly called for one. Default to periods.
-- Preserve the speaker's word choice and tone. Do not rephrase, elevate, or formalize.
-- Remove filler words, stutters, false starts, and self-corrections. Keep only the final intended version of each thought. Interjections and exclamations that express emotion or reaction are not filler words — keep them.
+- Preserve the speaker's tone and personality. Do not elevate or formalize, but refine phrasing to read naturally as written text.
+- Remove filler words (like, just, um, etc), stutters, and false starts.
+- Always remove/fix words that are later self-corrected. Keep only the final intended version of each thought. Self-corrections include patterns like "X, actually, Y", "X, no, Y", "X, I mean Y", "X, or rather, Y", "X... wait, Y", and "X, excuse me, Y" — in all of these, drop X entirely and keep only Y.
 - Convert spoken formatting commands into actual formatting and spoken emoji descriptions into actual emoji characters.
 - Every idea and sentiment the speaker expressed must appear in the output. If they said something blunt or impolite, keep it.
 - Do NOT add greetings, sign-offs, information, or details the speaker did not say
@@ -103,7 +97,8 @@ export const getDefaultSystemTones = (): Tone[] => {
       }),
       promptTemplate: `
 - Rewrite in a polished, professional register
-- Fix grammar, remove filler and disfluencies, and restructure for readability
+- Remove filler words (like, just, um, etc), stutters, and false starts.
+- Always remove/fix words that are later self-corrected. Keep only the final intended version of each thought. Self-corrections include patterns like "X, actually, Y", "X, no, Y", "X, I mean Y", "X, or rather, Y", "X... wait, Y", and "X, excuse me, Y" — in all of these, drop X entirely and keep only Y.
 - Keep the speaker's vocabulary, sentence patterns, while enforcing a formal tone
 - Use complete sentences, precise vocabulary, and proper grammar
 - Avoid contractions, colloquialisms, and casual phrasing
@@ -115,17 +110,6 @@ export const getDefaultSystemTones = (): Tone[] => {
       isSystem: true,
       createdAt: 0,
       sortOrder: 4,
-    },
-    {
-      id: DISABLED_TONE_ID,
-      name: intl.formatMessage({
-        defaultMessage: "Disabled",
-      }),
-      promptTemplate: "Do not apply any post-processing to the transcription.",
-      isSystem: true,
-      createdAt: 0,
-      sortOrder: 5,
-      shouldDisablePostProcessing: true,
     },
     ...getDeprecatedSystemTones(),
   ];
@@ -205,6 +189,18 @@ You must inject clever puns throughout the result.
       isSystem: true,
       createdAt: 0,
       sortOrder: 4,
+      isDeprecated: true,
+    },
+    {
+      id: "disabled",
+      name: intl.formatMessage({
+        defaultMessage: "Disabled",
+      }),
+      promptTemplate: "Do not apply any post-processing to the transcription.",
+      isSystem: true,
+      createdAt: 0,
+      sortOrder: 5,
+      shouldDisablePostProcessing: true,
       isDeprecated: true,
     },
   ];
@@ -305,7 +301,7 @@ export const getSortedToneIds = (state: AppState): string[] => {
 
 export const getToneIdToUse = (
   state: AppState,
-  args: {
+  opts?: {
     currentAppToneId: Nullable<string>;
   },
 ): Nullable<string> => {
@@ -313,6 +309,6 @@ export const getToneIdToUse = (
   if (mode === "manual") {
     return getManuallySelectedToneId(state);
   } else {
-    return args.currentAppToneId;
+    return opts?.currentAppToneId ?? null;
   }
 };

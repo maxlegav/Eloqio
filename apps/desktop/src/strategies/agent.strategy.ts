@@ -135,22 +135,11 @@ export class AgentStrategy extends BaseStrategy {
 
   async handleTranscript({
     rawTranscript,
-    loadingToken,
     currentApp,
   }: HandleTranscriptParams): Promise<HandleTranscriptResult> {
-    const clearLoadingToken = () => {
-      if (
-        loadingToken &&
-        this.context.overlayLoadingTokenRef.current === loadingToken
-      ) {
-        this.context.overlayLoadingTokenRef.current = null;
-      }
-    };
-
     if (!this.agent) {
       this.agent = await this.initAgent();
       if (!this.agent) {
-        clearLoadingToken();
         return {
           shouldContinue: false,
           transcript: null,
@@ -172,7 +161,9 @@ export class AgentStrategy extends BaseStrategy {
       const liveTools: string[] = [];
       this.uiMessages.push({ text: "", sender: "agent", tools: liveTools });
 
-      getLogger().info(`Running agent with transcript (${rawTranscript.length} chars)`);
+      getLogger().info(
+        `Running agent with transcript (${rawTranscript.length} chars)`,
+      );
       const result = await this.agent.run(rawTranscript, {
         onToolExecuted: (tool) => {
           getLogger().verbose(`Agent tool executed: ${tool.displayName}`);
@@ -180,7 +171,9 @@ export class AgentStrategy extends BaseStrategy {
           this.updateWindowState(this.uiMessages);
         },
       });
-      getLogger().info(`Agent response: ${result.response?.length ?? 0} chars, history=${result.history.length} turns`);
+      getLogger().info(
+        `Agent response: ${result.response?.length ?? 0} chars, history=${result.history.length} turns`,
+      );
       getLogger().verbose(`Agent response: ${result.response}`);
 
       this.uiMessages.pop();
@@ -202,8 +195,6 @@ export class AgentStrategy extends BaseStrategy {
         this.currentDraft = null;
         this.updateWindowState(this.uiMessages);
       }
-
-      clearLoadingToken();
 
       if (this.shouldStop) {
         await this.cleanup();
@@ -232,7 +223,6 @@ export class AgentStrategy extends BaseStrategy {
         message: errorMessage,
         toastType: "error",
       });
-      clearLoadingToken();
       await this.cleanup();
       return {
         shouldContinue: false,

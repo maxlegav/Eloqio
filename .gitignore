@@ -5,6 +5,7 @@
 # Dependencies
 node_modules
 .pnp
+.pnpm-store
 .pnp.js
 .ignore
 .claude
@@ -19,6 +20,7 @@ node_modules
 
 # Testing
 coverage
+models
 
 # Turbo
 .turbo
@@ -35,6 +37,10 @@ dist
 apps/desktop/src/i18n/locales/.cache/
 apps/windows-installer/src-tauri/installer/Voquill_Setup.exe
 
+
+# Lockfiles (npm/yarn — we use pnpm)
+package-lock.json
+yarn.lock
 
 # Debug
 npm-debug.log*
